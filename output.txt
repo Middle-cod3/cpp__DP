@@ -1,4 +1,4 @@
-Enter the value of n: The 6th Fibonacci number is: 8
-The 6th Fibonacci number is: 8
-The 6th Fibonacci number is: 8
-The 6th Fibonacci number is: 8
+Recr 8
+Memo 8
+Tab 8
+S Opti 8

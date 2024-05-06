@@ -119,10 +119,18 @@ Tabulation: Known as the “bottom-up '' dynamic programming, usually the proble
 ----> 1. Declaring an array considering the size of the sub problems if n problem then its int dp[n+1]
       2. Storing the ans which is being computed for every sub problem
       3. Checking if the sub problem has been previously solved then the value will not be -1
-5️⃣
+5️⃣ How do you understand this is a dp problem.
+----> i.Whenever the questions are like count the total no of ways.
+ii. There're multiple ways to do this but you gotta tell me which is giving you a the minimal output or maximum output
+For Recursion:
+i.Try all possible ways like count or best way then you're trying to apply recursion
+6️⃣ Shortcut trick
 ---->
-6️⃣
----->
+i. Try to represent the problem in terms of index
+ii. Do all possible stuffs on that index according to the problem statement
+iii. If the qs says count all the ways ->sum up all the stuffs
+    if says minimum-> take mini(all stuffs)
+    if maxi-> take max(all stuffs)
 7️⃣
 ---->
 */
@@ -182,20 +190,198 @@ int fibonacciNumberSpceOpti(int n)
     }
     return prev;
 }
+
 /*
-2.
-ANS :
+2. Climbing Stars/Count Ways To Reach The N-th Stairs
+ANS : You have been given a number of stairs. Initially, you are at the 0th stair, and you need to reach the Nth stair.
+Each time, you can climb either one step or two steps.
+You are supposed to return the number of distinct ways you can climb from the 0th step to the Nth step.
+** 1 <= 'T' <= 10
+0 <= 'N' <= 10^5 **
+You've to use mod
 Input :   || Output :
 */
-// Bruteforce ----------->
-// TC :
-// SC :
-// Better ----------->
-// TC :
-// SC :
-// Optimal ---------->
-// TC :
-// SC :
+// Bruteforce ------Recursion----->
+// TC : O(2^n)
+// SC : O(n) due to the usage of the function call stack.
+int getCount(int currStep, int nStairs, const int &mod)
+{
+
+    // Base case.
+    if (currStep >= nStairs)
+    {
+
+        return (currStep == nStairs);
+    }
+
+    //  Climb one stair.
+    int oneStepcount = getCount(currStep + 1, nStairs, mod);
+
+    //  Climb two stairs
+    int twoStepCount = getCount(currStep + 2, nStairs, mod);
+
+    return (oneStepcount + twoStepCount) % mod;
+}
+int countDistinctWaysRecr(int n)
+{
+    // Initialize the variable 'mod'.
+    const int mod = 1000000007;
+
+    // Initialize the variable 'ways'.
+    int ways = getCount(0, n, mod);
+
+    return ways;
+}
+// Better ------Memoization----->
+// TC : The overlapping subproblems will return the answer in constant time O(1). Therefore the total number of new subproblems we solve is ‘n’. Hence total time complexity is O(N).
+// SC : We are using a recursion stack space(O(N)) and an array (again O(N)). Therefore total space complexity will be O(N) + O(N) ≈ O(N)
+int getCount(int currStep, int nStairs, vector<int> &dp, const int &mod)
+{
+
+    // Base case.
+    if (currStep >= nStairs)
+    {
+
+        return (currStep == nStairs);
+    }
+
+    // Check we have already solution or not?.
+    if (dp[currStep] != -1)
+    {
+
+        return dp[currStep];
+    }
+
+    // Climb one stair.
+    int oneStepcount = getCount(currStep + 1, nStairs, dp, mod);
+
+    // Climb two stairs.
+    int twoStepCount = getCount(currStep + 2, nStairs, dp, mod);
+
+    // Store for later use.
+    dp[currStep] = (oneStepcount + twoStepCount) % mod;
+
+    return dp[currStep];
+}
+
+int countDistinctWaysMemo(int n)
+{
+
+    // Initialize the variable 'mod'.
+    const int mod = 1000000007;
+
+    // Create an array 'dp' of length 'n + 1' with initial value '-1'.
+    vector<int> dp(n + 1, -1);
+
+    // Initialize the variable 'ways'.
+    int ways = getCount(0, n, dp, mod);
+
+    return ways;
+}
+// Optimal -----Tabulation----->
+// TC : O(N) We are running a simple iterative loop
+// SC : We are using an external array of size ‘n+1’. we're not using recirsion stack space
+int countDistinctWaysTab(int n)
+{
+
+    // Initialize the variable 'mod'.
+    const int mod = 1000000007;
+
+    // Create an array 'dp' of length '2' with intial value '1'.
+    vector<int> dp(2, 1);
+
+    // Checking if 'n' is less than or equal to '1',
+    // Because in that case there is no need for further calculation.
+    if (n <= 1)
+    {
+
+        return dp[n];
+    }
+
+    // Iterate on the range '[2, n]'.
+    for (int currStep = 2; currStep <= n; currStep++)
+    {
+
+        // Calculate ways to reach 'currStep'th stair.
+        int currStepWays = (dp[0] + dp[1]) % mod;
+
+        // Update 'dp' array.
+        dp[0] = dp[1];
+
+        dp[1] = currStepWays;
+    }
+
+    return dp[1];
+}
+
+// Most Optimal -----Space Optimization----->
+// Time Complexity : O(log(N))
+// Space complexity : O(log(N))
+// Logic for Multiplication of Matrix 'F' and Matrix 'M'.
+void multiply(int F[2][2], int M[2][2], const int &mod)
+{
+
+    int x = ((F[0][0] * 1LL * M[0][0]) % mod + (F[0][1] * 1LL * M[1][0]) % mod) % mod;
+    int y = ((F[0][0] * 1LL * M[0][1]) % mod + (F[0][1] * 1LL * M[1][1]) % mod) % mod;
+    int z = ((F[1][0] * 1LL * M[0][0]) % mod + (F[1][1] * 1LL * M[1][0]) % mod) % mod;
+    int w = ((F[1][0] * 1LL * M[0][1]) % mod + (F[1][1] * 1LL * M[1][1]) % mod) % mod;
+
+    F[0][0] = x;
+    F[0][1] = y;
+    F[1][0] = z;
+    F[1][1] = w;
+}
+
+// Binary Matrix Exponentiation.
+void power(int F[2][2], int nStairs, const int &mod)
+{
+
+    if (nStairs <= 1)
+    {
+
+        return;
+    }
+
+    int M[2][2] = {{1, 1}, {1, 0}};
+
+    power(F, nStairs / 2, mod);
+
+    multiply(F, F, mod);
+
+    if (nStairs % 2 == 1)
+    {
+
+        multiply(F, M, mod);
+    }
+}
+
+int fib(int nStairs, const int &mod)
+{
+
+    int F[2][2] = {{1, 1}, {1, 0}};
+
+    // Base case.
+    if (nStairs == 0)
+    {
+
+        return 0;
+    }
+
+    power(F, nStairs - 1, mod);
+
+    return F[0][0];
+}
+
+int countDistinctWaysSOpti(int n)
+{
+
+    // Initialize the variable 'mod'.
+    const int mod = 1000000007;
+
+    // The no. of ways to climb the 'n' is equal to '(n + 1)th' Fibonacci Number.
+    return fib(n + 1, mod);
+}
+
 /*
 3.
 ANS :
@@ -392,15 +578,20 @@ int main()
             int sum = accumulate(arr.begin(), arr.end(), 0);
     */
 
-    int n;
-    cout << "Enter the value of n: ";
-    cin >> n;
-    VI dp(n + 1, -1);
+    // int n;
+    // cout << "Enter the value of n: ";
+    // cin >> n;
+    // VI dp(n + 1, -1);
     // memset(dp,-1,sizeof dp);
-    cout << "The " << n << "th Fibonacci number is: " << fibonacciNumberRecur(n) << endl;
-    cout << "The " << n << "th Fibonacci number is: " << fibonacciNumberMemo(n, dp) << endl;
-    cout << "The " << n << "th Fibonacci number is: " << fibonacciNumberTabu(n, dp) << endl;
-    cout << "The " << n << "th Fibonacci number is: " << fibonacciNumberSpceOpti(n) << endl;
+    // cout << "The " << n << "th Fibonacci number is: " << fibonacciNumberRecur(n) << endl;
+    // cout << "The " << n << "th Fibonacci number is: " << fibonacciNumberMemo(n, dp) << endl;
+    // cout << "The " << n << "th Fibonacci number is: " << fibonacciNumberTabu(n, dp) << endl;
+    // cout << "The " << n << "th Fibonacci number is: " << fibonacciNumberSpceOpti(n) << endl;
+    cout<<"Recr "<<countDistinctWaysRecr(5)<<endl;
+    cout<<"Memo "<<countDistinctWaysMemo(5)<<endl;
+    cout<<"Tab "<<countDistinctWaysTab(5)<<endl;
+    cout<<"S Opti "<<countDistinctWaysSOpti(5)<<endl;
+
     return 0;
 
     //  End code here-------->>
