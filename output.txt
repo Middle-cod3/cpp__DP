@@ -1,1 +1,4 @@
-3 2 1 0 
+Enter the value of n: The 6th Fibonacci number is: 8
+The 6th Fibonacci number is: 8
+The 6th Fibonacci number is: 8
+The 6th Fibonacci number is: 8
