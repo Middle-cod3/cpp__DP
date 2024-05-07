@@ -115,15 +115,24 @@ Tabulation: Known as the “bottom-up '' dynamic programming, usually the proble
 
 3️⃣ How we are going to learn?
 ----> First try using recursion then to optimize we use memoization then we'll use tabulation for space optimise
-4️⃣ How to convert Recursion ->Dynamic programing?
+
+4️⃣ How to convert Recursion ->Dynamic Programing?
 ----> 1. Declaring an array considering the size of the sub problems if n problem then its int dp[n+1]
       2. Storing the ans which is being computed for every sub problem
       3. Checking if the sub problem has been previously solved then the value will not be -1
+
+$$$ RECURSION -> MEMOIZATION.
+->i. Loook at the params changin ii. Before returning add it up iii. whenever we call recursion just check if it has been previously computed or not
+
+$$$ MEMOIZATION -> TABULATION
+->i.Chekc how much dp array is used then init it. ii.Look for the base case. iii. Try a loop iv. The change recursion code to dp v. At the end inside loop store in dp
+
 5️⃣ How do you understand this is a dp problem.
 ----> i.Whenever the questions are like count the total no of ways.
 ii. There're multiple ways to do this but you gotta tell me which is giving you a the minimal output or maximum output
 For Recursion:
 i.Try all possible ways like count or best way then you're trying to apply recursion
+
 6️⃣ Shortcut trick
 ---->
 i. Try to represent the problem in terms of index
@@ -383,19 +392,115 @@ int countDistinctWaysSOpti(int n)
 }
 
 /*
-3.
-ANS :
+3.Frog Jump
+ANS : There is a frog on the '1st' step of an 'N' stairs long staircase. The frog wants to reach the 'Nth' stair. 'HEIGHT[i]' is the height of the '(i+1)th' stair.If Frog jumps from 'ith' to 'jth' stair, the energy lost in the jump is given by absolute value of ( HEIGHT[i-1] - HEIGHT[j-1] ). If the Frog is on 'ith' staircase, he can jump either to '(i+1)th' stair or to '(i+2)th' stair. Your task is to find the minimum total energy used by the frog to reach from '1st' stair to 'Nth' stair.
 Input :   || Output :
+Intuition:
+We're trying all possible ways so thats'y its we can think of gredy & recursion
+why not we're using greedy algo?
+-> The total energy required by the frog depends upon the path taken by the frog. If the frog just takes the cheapest path in every stage it can happen that it eventually takes a costlier path after a certain number of jumps. The following example will help to understand this.
+[30,10,60,10,50,50] greedy sol=it only can go upto min(n-1,n-2)
+so for that we'll get +20+0+40=60
+but in no-greedy we'll get +30+0+10=40
+Thats'y we're not using greedy algo
+
 */
-// Bruteforce ----------->
-// TC :
-// SC :
-// Better ----------->
-// TC :
-// SC :
-// Optimal ---------->
-// TC :
-// SC :
+// Bruteforce ------Recursion----->
+// TC :O(2^N)
+// SC :O(2^N)
+int frogJumpRecur(int n, vector<int> &heights)
+{
+    // Base case: when the frog reaches the first stair
+    if (n == 1)
+        return 0;
+
+    // Initialize the variables to store energy loss for jumping to the left and right stairs
+    int left = INT_MAX, right = INT_MAX;
+
+    // Calculate energy loss for jumping to the left stair if possible
+    if (n > 1)
+        left = frogJump(n - 1, heights) + abs(heights[n - 1] - heights[n - 2]);
+
+    // Calculate energy loss for jumping to the right stair if possible
+    if (n > 2)
+        right = frogJump(n - 2, heights) + abs(heights[n - 1] - heights[n - 3]);
+
+    // Return the minimum energy loss between left and right jumps
+    return min(left, right);
+}
+
+// Better ------Memoization----->
+// There're overlaping sub-problems so the ans to the sub-problems will be similer thereby we can apply memoization
+// Time Complexity: O(N)
+// Reason: The overlapping subproblems will return the answer in constant time O(1). Therefore the total number of new subproblems we solve is ‘n’. Hence total time complexity is O(N).
+// Space Complexity: O(N)
+// Reason: We are using a recursion stack space(O(N)) and an array (again O(N)). Therefore total space complexity will be O(N) + O(N) ≈ O(N)
+int frogJumpMemoHelper(int n, VI &heights, VI &dp)
+{
+    if (n == 1)
+        return 1;
+    if (dp[n] != -1)
+        return dp[n];
+    // Initialize the variables to store energy loss for jumping to the left and right stairs
+    int left = INT_MAX, right = INT_MAX;
+
+    // Calculate energy loss for jumping to the left stair if possible
+    if (n > 1)
+        left = frogJump(n - 1, heights) + abs(heights[n - 1] - heights[n - 2]);
+
+    // Calculate energy loss for jumping to the right stair if possible
+    if (n > 2)
+        right = frogJump(n - 2, heights) + abs(heights[n - 1] - heights[n - 3]);
+
+    // Return the minimum energy loss between left and right jumps
+    return dp[n] = min(left, right);
+}
+int frogJumpMemo(int n, vector<int> &heights)
+{
+    VI dp(n + 1, -1);
+    return frogJumpMemoHelper(n, heights, dp);
+}
+// Optimal -----Tabulation----->
+// Time Complexity: O(N)
+// Reason: We are running a simple iterative loop
+// Space Complexity: O(N)
+// Reason: We are using an external array of size ‘n+1’.
+int frogJumpTabu(int n, VI &heights)
+{
+    VI dp(n, 0);
+    dp[0] = 0;
+    for (int i = 1; i < n; i++)
+    {
+        int fs = dp[i - 1] + abs(heights[i] - heights[i - 1]);
+        int ss = INT_MAX;
+        if (i > 1)
+            ss = dp[i - 2] + abs(heights[i] -= heights[i - 2]);
+        dp[i] = min(fs, ss);
+    }
+    return dp[n - 1];
+}
+// Most Optimal -----Space Optimization----->
+// Time Complexity: O(N)
+// Reason: We are running a simple iterative loop
+// Space Complexity: O(1)
+// Reason: We are not using any extra space.
+int frogJumpSOpti(int n, VI &height)
+{
+    int prev = 0;
+    int prev2 = 0;
+    for (int i = 1; i < n; i++)
+    {
+        int jumpTwo = INT_MAX;
+        int jumpOne = prev + abs(height[i] - height[i - 1]);
+        if (i > 1)
+            jumpTwo = prev2 + abs(height[i] - height[i - 2]);
+
+        int cur_i = min(jumpOne, jumpTwo);
+        prev2 = prev;
+        prev = cur_i;
+    }
+    return prev;
+}
 /*
 4.
 ANS :
@@ -404,10 +509,15 @@ Input :   || Output :
 // Bruteforce ----------->
 // TC :
 // SC :
-// Better ----------->
+// Better ------Memoization----->
+
 // TC :
 // SC :
-// Optimal ---------->
+// Optimal -----Tabulation----->
+
+// TC :
+// SC :
+// Most Optimal -----Space Optimization----->
 // TC :
 // SC :
 /*
@@ -418,10 +528,15 @@ Input :   || Output :
 // Bruteforce ----------->
 // TC :
 // SC :
-// Better ----------->
+// Better ------Memoization----->
+
 // TC :
 // SC :
-// Optimal ---------->
+// Optimal -----Tabulation----->
+
+// TC :
+// SC :
+// Most Optimal -----Space Optimization----->
 // TC :
 // SC :
 /*
@@ -432,10 +547,15 @@ Input :   || Output :
 // Bruteforce ----------->
 // TC :
 // SC :
-// Better ----------->
+// Better ------Memoization----->
+
 // TC :
 // SC :
-// Optimal ---------->
+// Optimal -----Tabulation----->
+
+// TC :
+// SC :
+// Most Optimal -----Space Optimization----->
 // TC :
 // SC :
 /*
@@ -446,10 +566,15 @@ Input :   || Output :
 // Bruteforce ----------->
 // TC :
 // SC :
-// Better ----------->
+// Better ------Memoization----->
+
 // TC :
 // SC :
-// Optimal ---------->
+// Optimal -----Tabulation----->
+
+// TC :
+// SC :
+// Most Optimal -----Space Optimization----->
 // TC :
 // SC :
 /*
@@ -460,10 +585,15 @@ Input :   || Output :
 // Bruteforce ----------->
 // TC :
 // SC :
-// Better ----------->
+// Better ------Memoization----->
+
 // TC :
 // SC :
-// Optimal ---------->
+// Optimal -----Tabulation----->
+
+// TC :
+// SC :
+// Most Optimal -----Space Optimization----->
 // TC :
 // SC :
 /*
@@ -474,10 +604,15 @@ Input :   || Output :
 // Bruteforce ----------->
 // TC :
 // SC :
-// Better ----------->
+// Better ------Memoization----->
+
 // TC :
 // SC :
-// Optimal ---------->
+// Optimal -----Tabulation----->
+
+// TC :
+// SC :
+// Most Optimal -----Space Optimization----->
 // TC :
 // SC :
 /*
@@ -488,10 +623,15 @@ Input :   || Output :
 // Bruteforce ----------->
 // TC :
 // SC :
-// Better ----------->
+// Better ------Memoization----->
+
 // TC :
 // SC :
-// Optimal ---------->
+// Optimal -----Tabulation----->
+
+// TC :
+// SC :
+// Most Optimal -----Space Optimization----->
 // TC :
 // SC :
 /*
@@ -502,10 +642,15 @@ Input :   || Output :
 // Bruteforce ----------->
 // TC :
 // SC :
-// Better ----------->
+// Better ------Memoization----->
+
 // TC :
 // SC :
-// Optimal ---------->
+// Optimal -----Tabulation----->
+
+// TC :
+// SC :
+// Most Optimal -----Space Optimization----->
 // TC :
 // SC :
 
@@ -517,10 +662,15 @@ Input :   || Output :
 // Bruteforce ----------->
 // TC :
 // SC :
-// Better ----------->
+// Better ------Memoization----->
+
 // TC :
 // SC :
-// Optimal ---------->
+// Optimal -----Tabulation----->
+
+// TC :
+// SC :
+// Most Optimal -----Space Optimization----->
 // TC :
 // SC :
 
@@ -532,10 +682,15 @@ Input :   || Output :
 // Bruteforce ----------->
 // TC :
 // SC :
-// Better ----------->
+// Better ------Memoization----->
+
 // TC :
 // SC :
-// Optimal ---------->
+// Optimal -----Tabulation----->
+
+// TC :
+// SC :
+// Most Optimal -----Space Optimization----->
 // TC :
 // SC :
 
@@ -547,10 +702,15 @@ Input :   || Output :
 // Bruteforce ----------->
 // TC :
 // SC :
-// Better ----------->
+// Better ------Memoization----->
+
 // TC :
 // SC :
-// Optimal ---------->
+// Optimal -----Tabulation----->
+
+// TC :
+// SC :
+// Most Optimal -----Space Optimization----->
 // TC :
 // SC :
 
@@ -562,10 +722,15 @@ Input :   || Output :
 // Bruteforce ----------->
 // TC :
 // SC :
-// Better ----------->
+// Better ------Memoization----->
+
 // TC :
 // SC :
-// Optimal ---------->
+// Optimal -----Tabulation----->
+
+// TC :
+// SC :
+// Most Optimal -----Space Optimization----->
 // TC :
 // SC :
 
@@ -587,10 +752,10 @@ int main()
     // cout << "The " << n << "th Fibonacci number is: " << fibonacciNumberMemo(n, dp) << endl;
     // cout << "The " << n << "th Fibonacci number is: " << fibonacciNumberTabu(n, dp) << endl;
     // cout << "The " << n << "th Fibonacci number is: " << fibonacciNumberSpceOpti(n) << endl;
-    cout<<"Recr "<<countDistinctWaysRecr(5)<<endl;
-    cout<<"Memo "<<countDistinctWaysMemo(5)<<endl;
-    cout<<"Tab "<<countDistinctWaysTab(5)<<endl;
-    cout<<"S Opti "<<countDistinctWaysSOpti(5)<<endl;
+    cout << "Recr " << countDistinctWaysRecr(5) << endl;
+    cout << "Memo " << countDistinctWaysMemo(5) << endl;
+    cout << "Tab " << countDistinctWaysTab(5) << endl;
+    cout << "S Opti " << countDistinctWaysSOpti(5) << endl;
 
     return 0;
 
