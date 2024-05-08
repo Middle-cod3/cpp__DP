@@ -1,4 +1,3 @@
-Recr 8
-Memo 8
-Tab 8
-S Opti 8
+Recr 12
+Memo 12
+Tab 12

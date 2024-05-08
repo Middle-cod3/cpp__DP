@@ -408,7 +408,7 @@ Thats'y we're not using greedy algo
 // Bruteforce ------Recursion----->
 // TC :O(2^N)
 // SC :O(2^N)
-int frogJumpRecur(int n, vector<int> &heights)
+int frogJumpRecur(int n, VI &heights)
 {
     // Base case: when the frog reaches the first stair
     if (n == 1)
@@ -419,11 +419,11 @@ int frogJumpRecur(int n, vector<int> &heights)
 
     // Calculate energy loss for jumping to the left stair if possible
     if (n > 1)
-        left = frogJump(n - 1, heights) + abs(heights[n - 1] - heights[n - 2]);
+        left = frogJumpRecur(n - 1, heights) + abs(heights[n - 1] - heights[n - 2]);
 
     // Calculate energy loss for jumping to the right stair if possible
     if (n > 2)
-        right = frogJump(n - 2, heights) + abs(heights[n - 1] - heights[n - 3]);
+        right = frogJumpRecur(n - 2, heights) + abs(heights[n - 1] - heights[n - 3]);
 
     // Return the minimum energy loss between left and right jumps
     return min(left, right);
@@ -435,30 +435,36 @@ int frogJumpRecur(int n, vector<int> &heights)
 // Reason: The overlapping subproblems will return the answer in constant time O(1). Therefore the total number of new subproblems we solve is ‘n’. Hence total time complexity is O(N).
 // Space Complexity: O(N)
 // Reason: We are using a recursion stack space(O(N)) and an array (again O(N)). Therefore total space complexity will be O(N) + O(N) ≈ O(N)
-int frogJumpMemoHelper(int n, VI &heights, VI &dp)
+int frogJumpMemoHelper(int i, VI &heights, VI &dp)
 {
-    if (n == 1)
-        return 1;
-    if (dp[n] != -1)
-        return dp[n];
+    // Base case: when the frog reaches the first stair
+    int n = SZ(heights);
+    if (i == n - 1)
+        return 0;
+    if (dp[i] != -1)
+        return dp[i];
     // Initialize the variables to store energy loss for jumping to the left and right stairs
-    int left = INT_MAX, right = INT_MAX;
+    int oneJump = INT_MAX, twoJump = INT_MAX;
 
     // Calculate energy loss for jumping to the left stair if possible
-    if (n > 1)
-        left = frogJump(n - 1, heights) + abs(heights[n - 1] - heights[n - 2]);
+    if (i + 1 < n)
+    {
+        oneJump = abs(heights[i] - heights[i + 1]) + frogJumpMemoHelper(i + 1, heights, dp);
+    }
 
-    // Calculate energy loss for jumping to the right stair if possible
-    if (n > 2)
-        right = frogJump(n - 2, heights) + abs(heights[n - 1] - heights[n - 3]);
+    if (i + 2 < n)
+    {
+        twoJump = abs(heights[i] - heights[i + 2]) + frogJumpMemoHelper(i + 2, heights, dp);
+    }
 
-    // Return the minimum energy loss between left and right jumps
-    return dp[n] = min(left, right);
+    int ans = min(oneJump, twoJump);
+    dp[i] = ans;
+    return ans;
 }
-int frogJumpMemo(int n, vector<int> &heights)
+int frogJumpMemo(int n, VI &heights)
 {
     VI dp(n + 1, -1);
-    return frogJumpMemoHelper(n, heights, dp);
+    return frogJumpMemoHelper(0, heights, dp);
 }
 // Optimal -----Tabulation----->
 // Time Complexity: O(N)
@@ -474,7 +480,7 @@ int frogJumpTabu(int n, VI &heights)
         int fs = dp[i - 1] + abs(heights[i] - heights[i - 1]);
         int ss = INT_MAX;
         if (i > 1)
-            ss = dp[i - 2] + abs(heights[i] -= heights[i - 2]);
+            ss = dp[i - 2] + abs(heights[i] - heights[i - 2]);
         dp[i] = min(fs, ss);
     }
     return dp[n - 1];
@@ -501,22 +507,111 @@ int frogJumpSOpti(int n, VI &height)
     }
     return prev;
 }
+
 /*
-4.
-ANS :
+4. Frog Jump with k Distances
+ANS : There is an array of heights corresponding to 'n' stones. You have to reach from stone 1 to stone ‘n’.
+From stone 'i', it is possible to reach stones 'i'+1, ‘i’+2… ‘i’+'k' , and the cost incurred will be | Height[i]-Height[j] |, where 'j' is the landing stone.
+Return the minimum possible total cost incurred in reaching the stone ‘n’.
 Input :   || Output :
 */
 // Bruteforce ----------->
-// TC :
-// SC :
+// TC : O(n * k), where n is the number of steps and k is the maximum number of steps backward.
+// SC : Since the recursion depth can be at most n (the number of steps), the space complexity is O(n).
+int minimizeCostRecr(int ind, int k, vector<int> &h)
+{
+    if (ind == 0)
+        return 0;
+
+    int minStep = INT_MAX;
+    for (int j = 1; j <= k; j++)
+    {
+        if (ind - j >= 0)
+        {
+            int jump = minimizeCostRecr(ind - j, k, h) + abs(h[ind] - h[ind - j]);
+            minStep = min(minStep, jump);
+        }
+        else
+        {
+            break;
+        }
+    }
+    return minStep;
+}
+
+int minimizeCostR(int n, int k, vector<int> &h)
+{
+    return minimizeCostRecr(n - 1, k, h); // Start from the last index
+}
 // Better ------Memoization----->
+// TC : O(N *K)
+// SC : We are using a recursion stack space(O(N)) and an array (again O(N)). Therefore total space complexity will be O(N) + O(N) ≈ O(N)
+int solveUtil(int ind, vector<int> &height, vector<int> &dp, int k)
+{
+    // Base case: If we are at the beginning (index 0), no cost is needed.
+    if (ind == 0)
+        return 0;
 
-// TC :
-// SC :
+    // If the result for this index has been previously calculated, return it.
+    if (dp[ind] != -1)
+        return dp[ind];
+
+    int mmSteps = INT_MAX;
+
+    // Loop to try all possible jumps from '1' to 'k'
+    for (int j = 1; j <= k; j++)
+    {
+        // Ensure that we do not jump beyond the beginning of the array
+        if (ind - j >= 0)
+        {
+            // Calculate the cost for this jump and update mmSteps with the minimum cost
+            int jump = solveUtil(ind - j, height, dp, k) + abs(height[ind] - height[ind - j]);
+            mmSteps = min(jump, mmSteps);
+        }
+    }
+
+    // Store the minimum cost for this index in the dp array and return it.
+    return dp[ind] = mmSteps;
+}
+
+// Function to find the minimum cost to reach the end of the array
+int minimizeCostMemo(int n, int k, vector<int> &height)
+{
+    vector<int> dp(n, -1);                  // Initialize a memoization array to store calculated results
+    return solveUtil(n - 1, height, dp, k); // Start the recursion from the last index
+}
 // Optimal -----Tabulation----->
+// TC : O(N*K)
+// SC :O(N)
+int minimizeCostTabHelper(int n, vector<int> &height, vector<int> &dp, int k)
+{
+    dp[0] = 0;
 
-// TC :
-// SC :
+    // Loop through the array to fill in the dp array
+    for (int i = 1; i < n; i++)
+    {
+        int mmSteps = INT_MAX;
+
+        // Loop to try all possible jumps from '1' to 'k'
+        for (int j = 1; j <= k; j++)
+        {
+            if (i - j >= 0)
+            {
+                int jump = dp[i - j] + abs(height[i] - height[i - j]);
+                mmSteps = min(jump, mmSteps);
+            }
+        }
+        dp[i] = mmSteps;
+    }
+    return dp[n - 1]; // The result is stored in the last element of dp
+}
+
+// Function to find the minimum cost to reach the end of the array
+int minimizeCostTab(int n, int k, vector<int> &height)
+{
+    vector<int> dp(n, -1); // Initialize a memoization array to store calculated results
+    return minimizeCostTabHelper(n, height, dp, k);
+}
 // Most Optimal -----Space Optimization----->
 // TC :
 // SC :
@@ -752,10 +847,18 @@ int main()
     // cout << "The " << n << "th Fibonacci number is: " << fibonacciNumberMemo(n, dp) << endl;
     // cout << "The " << n << "th Fibonacci number is: " << fibonacciNumberTabu(n, dp) << endl;
     // cout << "The " << n << "th Fibonacci number is: " << fibonacciNumberSpceOpti(n) << endl;
-    cout << "Recr " << countDistinctWaysRecr(5) << endl;
-    cout << "Memo " << countDistinctWaysMemo(5) << endl;
-    cout << "Tab " << countDistinctWaysTab(5) << endl;
-    cout << "S Opti " << countDistinctWaysSOpti(5) << endl;
+    // cout << "Recr " << countDistinctWaysRecr(5) << endl;
+    // cout << "Memo " << countDistinctWaysMemo(5) << endl;
+    // cout << "Tab " << countDistinctWaysTab(5) << endl;
+    // cout << "S Opti " << countDistinctWaysSOpti(5) << endl;
+    VI h = {7, 2, 3, 6, 9, 6, 10, 10, 10, 3, 2, 7, 7, 4, 9, 5, 10, 5, 8, 7};
+    // cout << "Recr " << frogJumpRecur(20, h) << endl;
+    // cout << "Memo " << frogJumpMemo(20, h) << endl;
+    // cout << "Tab " << frogJumpTabu(20, h) << endl;
+    // cout << "S Opti " << frogJumpSOpti(20, h) << endl;
+    cout << "Recr " << minimizeCostR(20, 3, h) << endl;
+    cout << "Memo " << minimizeCostMemo(20, 3, h) << endl;
+    cout << "Tab " << minimizeCostTab(20, 3, h) << endl;
 
     return 0;
 
