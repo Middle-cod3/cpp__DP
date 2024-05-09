@@ -756,8 +756,9 @@ int robSopti(vector<int> &arr)
     return prev; // Return the maximum sum
 }
 /*
-6.
-ANS :
+6.House Robber II
+ANS : A thief needs to rob money in a street. The houses in the street are arranged in a circular manner. Therefore the first and the last house are adjacent to each other. The security system in the street is such that if adjacent houses are robbed, the police will get notified.
+Given an array of integers “Arr'' which represents money at each house, we need to return the maximum amount of money that the thief can rob without alerting the police.
 Input :   || Output :
 */
 // Bruteforce ----------->
@@ -772,8 +773,25 @@ Input :   || Output :
 // TC :
 // SC :
 // Most Optimal -----Space Optimization----->
-// TC :
-// SC :
+// Time Complexity: O(N )
+// Reason: We are running a simple iterative loop, two times. Therefore total time complexity will be O(N) + O(N) ≈ O(N)
+// Space Complexity: O(1)
+// Reason: We are not using extra space.
+int robII(vector<int> &nums)
+{
+    VI temp1, temp2;
+    int n = SZ(nums);
+    if (n == 1)
+        return nums[0];
+    FOR(i, n)
+    {
+        if (i != 0)
+            temp1.PB(nums[i]);
+        if (i != n - 1)
+            temp2.PB(nums[i]);
+    }
+    return max(robSopti(temp1), robSopti(temp2));
+}
 /*
 7.
 ANS :
@@ -980,11 +998,12 @@ int main()
     // cout << "Recr " << minimizeCostR(20, 3, h) << endl;
     // cout << "Memo " << minimizeCostMemo(20, 3, h) << endl;
     // cout << "Tab " << minimizeCostTab(20, 3, h) << endl;
-    VI h = {2, 7, 9, 3, 1};
-    cout << "Recr " << robRecr(h) << endl;
-    cout << "Memo " << robMemo(h) << endl;
-    cout << "Tab " << robTabu(h) << endl;
-    cout << "S opti " << robSopti(h) << endl;
+    VI h = {2, 7, 9, 3, 2};
+    // cout << "Recr " << robRecr(h) << endl;
+    // cout << "Memo " << robMemo(h) << endl;
+    // cout << "Tab " << robTabu(h) << endl;
+    // cout << "S opti " << robSopti(h) << endl;
+    cout << "S opti " << robII(h) << endl;
 
     return 0;
 
