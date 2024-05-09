@@ -132,7 +132,8 @@ $$$ MEMOIZATION -> TABULATION
 ii. There're multiple ways to do this but you gotta tell me which is giving you a the minimal output or maximum output
 For Recursion:
 i.Try all possible ways like count or best way then you're trying to apply recursion
-
+For Memoization:
+you'll see recursaion having overlaping problem then you can use memo...
 6️⃣ Shortcut trick
 ---->
 i. Try to represent the problem in terms of index
@@ -613,27 +614,147 @@ int minimizeCostTab(int n, int k, vector<int> &height)
     return minimizeCostTabHelper(n, height, dp, k);
 }
 // Most Optimal -----Space Optimization----->
-// TC :
+// TC : There is no space optimization approach cz space optimization takes long time to exeute
 // SC :
+
 /*
-5.
-ANS :
-Input :   || Output :
+5. Maximum sum of non-adjacent elements
+ANS : Given an array of ‘N’  positive integers, we need to return the maximum sum of the subsequence such that no two elements of the subsequence are adjacent elements in the array.
+Note: A subsequence of an array is a list with elements of the array where some elements are deleted ( or not deleted at all) and the elements should be in the same order in the subsequence as in the array.
+
+Leetcode qs:
+You are a professional robber planning to rob houses along a street. Each house has a certain amount of money stashed, the only constraint stopping you from robbing each of them is that adjacent houses have security systems connected and it will automatically contact the police if two adjacent houses were broken into on the same night.
+Given an integer array nums representing the amount of money of each house, return the maximum amount of money you can rob tonight without alerting the police.
+Input :  [1,2,4] || Output : pick 1+4=5
 */
 // Bruteforce ----------->
-// TC :
+// TC : O(2^n)
 // SC :
+// Try out all possible subsequences with the given condition which is pick the one with the minimum sum
+/*
+Intuitions:
+As mentioned earlier we will use the pick/non-pick technique to generate all subsequences. We also need to take care of the non-adjacent elements in this step.
+If we pick an element then, pick = arr[ind] + f(ind-2). The reason we are doing f(ind-2) is because we have picked the current index element so we need to pick a non-adjacent element so we choose the index ‘ind-2’ instead of ‘ind-1’.
+Next we need to ignore the current element in our subsequence. So nonPick= 0 + f(ind-1). As we don’t pick the current element, we can consider the adjacent element in the subsequence.
+*/
+int generateSubsequences(int ind, VI &nums)
+{
+    // Base condition
+    if (ind == 0)
+        return nums[ind];
+    if (ind < 0)
+        return 0;
+    int pick = nums[ind] + generateSubsequences(ind - 2, nums);
+    int notPick = 0 + generateSubsequences(ind - 1, nums);
+    return max(pick, notPick);
+}
+int robRecr(vector<int> &nums)
+{
+    int n = SZ(nums);
+    return generateSubsequences(n, nums);
+}
 // Better ------Memoization----->
+// Time Complexity: O(N)
+// Reason: The overlapping subproblems will return the answer in constant time O(1). Therefore the total number of new subproblems we solve is ‘n’. Hence total time complexity is O(N).
+// Space Complexity: O(N)
+// Reason: We are using a recursion stack space(O(N)) and an array (again O(N)). Therefore total space complexity will be O(N) + O(N) ≈ O(N)
+int memoHelper(int ind, VI &dp, VI &arr)
+{
+    // If the result for this index is already computed, return it
+    if (dp[ind] != -1)
+        return dp[ind];
 
-// TC :
-// SC :
+    // Base cases
+    if (ind == 0)
+        return arr[ind];
+    if (ind < 0)
+        return 0;
+    // Choose the current element or skip it, and take the maximum
+    int pick = arr[ind] +
+               memoHelper(ind - 2, dp, arr); // Choosing the current element
+    int nonPick =
+        0 + memoHelper(ind - 1, dp, arr); // Skipping the current element
+
+    // Store the result in the DP table and return it
+    return dp[ind] = max(pick, nonPick);
+}
+int robMemo(vector<int> &nums)
+{
+    int n = SZ(nums);
+    VI dp(n, -1);
+    return memoHelper(n - 1, dp, nums);
+}
 // Optimal -----Tabulation----->
+// Time Complexity: O(N)
+// Reason: We are running a simple iterative loop
+// Space Complexity: O(N)
+// Reason: We are using an external array of size ‘n+1’.
+int tabuHelper(int n, vector<int> &arr, vector<int> &dp)
+{
+    // Base case: If there are no elements in the array, return 0
+    dp[0] = arr[0];
 
-// TC :
-// SC :
+    // Iterate through the elements of the array
+    for (int i = 1; i < n; i++)
+    {
+        // Calculate the maximum value by either picking the current element
+        // or not picking it (i.e., taking the maximum of dp[i-2] + arr[i] and dp[i-1])
+        int pick = arr[i];
+        if (i > 1)
+            pick += dp[i - 2];
+        int nonPick = dp[i - 1];
+
+        // Store the maximum value in the dp array
+        dp[i] = max(pick, nonPick);
+    }
+
+    // The last element of the dp array will contain the maximum sum
+    return dp[n - 1];
+}
+int robTabu(vector<int> &nums)
+{
+    int n = SZ(nums);
+    VI dp(n, 0);
+    return tabuHelper(n, nums, dp);
+}
 // Most Optimal -----Space Optimization----->
-// TC :
-// SC :
+// Time Complexity: O(N)
+// Reason: We are running a simple iterative loop
+// Space Complexity: O(1)
+// Reason: We are not using any extra space.
+/*
+If we closely look at the values required at every iteration,
+
+dp[i], dp[i-1], and  dp[i-2]
+
+we see that for any i, we do need only the last two values in the array. So is there a need to maintain a whole array for it?
+
+The answer is ‘No’. Let us call dp[i-1] as prev and dp[i-2] as prev2. Now understand the following illustration.
+Each iteration’s cur_i and prev become the next iteration’s prev and prev2 respectively.
+Therefore after calculating cur_i, if we update prev and prev2 according to the next step, we will always get the answer.
+After the iterative loop has ended we can simply return prev as our answer.
+*/
+int robSopti(vector<int> &arr)
+{
+    int n = SZ(arr);
+    int prev = arr[0]; // Initialize the maximum sum ending at the previous element
+    int prev2 = 0;     // Initialize the maximum sum ending two elements ago
+
+    for (int i = 1; i < n; i++)
+    {
+        int pick = arr[i]; // Maximum sum if we pick the current element
+        if (i > 1)
+            pick += prev2; // Add the maximum sum two elements ago
+
+        int nonPick = 0 + prev; // Maximum sum if we don't pick the current element
+
+        int cur_i = max(pick, nonPick); // Maximum sum ending at the current element
+        prev2 = prev;                   // Update the maximum sum two elements ago
+        prev = cur_i;                   // Update the maximum sum ending at the previous element
+    }
+
+    return prev; // Return the maximum sum
+}
 /*
 6.
 ANS :
@@ -851,14 +972,19 @@ int main()
     // cout << "Memo " << countDistinctWaysMemo(5) << endl;
     // cout << "Tab " << countDistinctWaysTab(5) << endl;
     // cout << "S Opti " << countDistinctWaysSOpti(5) << endl;
-    VI h = {7, 2, 3, 6, 9, 6, 10, 10, 10, 3, 2, 7, 7, 4, 9, 5, 10, 5, 8, 7};
+    // VI h = {7, 2, 3, 6, 9, 6, 10, 10, 10, 3, 2, 7, 7, 4, 9, 5, 10, 5, 8, 7};
     // cout << "Recr " << frogJumpRecur(20, h) << endl;
     // cout << "Memo " << frogJumpMemo(20, h) << endl;
     // cout << "Tab " << frogJumpTabu(20, h) << endl;
     // cout << "S Opti " << frogJumpSOpti(20, h) << endl;
-    cout << "Recr " << minimizeCostR(20, 3, h) << endl;
-    cout << "Memo " << minimizeCostMemo(20, 3, h) << endl;
-    cout << "Tab " << minimizeCostTab(20, 3, h) << endl;
+    // cout << "Recr " << minimizeCostR(20, 3, h) << endl;
+    // cout << "Memo " << minimizeCostMemo(20, 3, h) << endl;
+    // cout << "Tab " << minimizeCostTab(20, 3, h) << endl;
+    VI h = {2, 7, 9, 3, 1};
+    cout << "Recr " << robRecr(h) << endl;
+    cout << "Memo " << robMemo(h) << endl;
+    cout << "Tab " << robTabu(h) << endl;
+    cout << "S opti " << robSopti(h) << endl;
 
     return 0;
 
