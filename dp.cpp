@@ -134,7 +134,7 @@ For Recursion:
 i.Try all possible ways like count or best way then you're trying to apply recursion
 For Memoization:
 you'll see recursaion having overlaping problem then you can use memo...
-6️⃣ Shortcut trick
+6️⃣ Shortcut trick******
 ---->
 i. Try to represent the problem in terms of index
 ii. Do all possible stuffs on that index according to the problem statement
@@ -793,24 +793,173 @@ int robII(vector<int> &nums)
     return max(robSopti(temp1), robSopti(temp2));
 }
 /*
-7.
-ANS :
+7. Ninja's Training 
+
+ANS : A Ninja has an ‘N’ Day training schedule. He has to perform one of these three activities (Running, Fighting Practice, or Learning New Moves) each day. There are merit points associated with performing an activity each day. The same activity can’t be performed on two consecutive days. We need to find the maximum merit points the ninja can attain in N Days.
+We are given a 2D Array POINTS of size ‘N*3’ which tells us the merit point of specific activity on that particular day. Our task is to calculate the maximum number of merit points that the ninja can earn.
 Input :   || Output :
+Why a Greedy Solution doesn’t work?
+The first approach that comes to our mind is the greedy approach. We will see with an example how a greedy solution doesn’t give the correct solution.
+We want to know the maximum amount of merit points. For the greedy approach, we will consider the maximum point activity each day, respecting the condition that activity can’t be performed on consecutive days.
+On Day 0, we will consider the activity with maximum points i.e 50.
+On Day 1, the maximum point activity is 100 but we can’t perform the same activity in two consecutive days. Therefore we will take the next maximum point activity of 11 points.
+Total Merit points by Greedy Solution : 50+11 = 61
+As this is a small example we can clearly see that we have a better approach, to consider activity with 10 points on day0 and 100 points on day1. It gives us the total merit points as 110 which is better than the greedy solution.
+So we see that the greedy solution restricts us from choices and we can lose activity with better points on the next day in the greedy solution. Therefore, it is better to try out all the possible choices as our next solution. We will use recursion to generate all the possible choices.
 */
-// Bruteforce ----------->
-// TC :
-// SC :
+// Bruteforce ------Recursion----->
+// Time Complexity: O(N*4*3)
+// Reason: There are N*4 states and for every state, we are running a for loop iterating three times.
+// Space Complexity: O(N) + O(N*4)
+// Reason: We are using a recursion stack space(O(N)) and a 2D array (again O(N*4)). Therefore total space complexity will be O(N) + O(N) ≈ O(N)
+
+int maximumPointsRecrHelper(vector<vector<int>> &points, int day, int last)
+{
+    if (day == 0)
+    {
+
+        int maxi = 0;
+        for (int i = 0; i <= 2; i++)
+        {
+            if (i != last)
+                maxi = max(maxi, points[0][i]);
+        }
+        return maxi;
+    }
+    int maxi = 0;
+    for (int i = 0; i <= 2; i++)
+    {
+        if (i != last)
+        {
+            int pts = points[day][i] + maximumPointsRecrHelper(points, day - 1, i);
+            maxi = max(maxi, pts);
+        }
+    }
+    return maxi;
+}
+int maximumPointsRecr(vector<vector<int>> &points, int n)
+{
+    return maximumPointsRecrHelper(points, n - 1, 3);
+}
 // Better ------Memoization----->
+// Time Complexity: O(N*4*3)
+// Reason: There are N*4 states and for every state, we are running a for loop iterating three times.
+// Space Complexity: O(N) + O(N*4)
+// Reason: We are using a recursion stack space(O(N)) and a 2D array (again O(N*4)). Therefore total space complexity will be O(N) + O(N) ≈ O(N)
+int maximumPointsMemoHelper(vector<vector<int>> &points, int day, int last, VVI &dp)
+{
+    if (day == 0)
+    {
 
-// TC :
-// SC :
+        int maxi = 0;
+        for (int i = 0; i <= 2; i++)
+        {
+            if (i != last)
+                maxi = max(maxi, points[0][i]);
+        }
+        return maxi;
+    }
+    if (dp[day][last] != -1)
+        return dp[day][last];
+    int maxi = 0;
+    for (int i = 0; i <= 2; i++)
+    {
+        if (i != last)
+        {
+            int pts = points[day][i] + maximumPointsMemoHelper(points, day - 1, i, dp);
+            maxi = max(maxi, pts);
+        }
+    }
+    return dp[day][last] = maxi;
+}
+int maximumPointsMemo(vector<vector<int>> &points, int n)
+{
+    VVI dp(n, VI(4, -1));
+    return maximumPointsMemoHelper(points, n - 1, 3, dp);
+}
 // Optimal -----Tabulation----->
+// Time Complexity: O(N*4*3)
+// Reason: There are three nested loops
+// Space Complexity: O(N*4)
+// Reason: We are using an external array of size ‘N*4’.
+int maximumPointsTabu(vector<vector<int>> &points, int n)
+{
+    // Create a 2D DP (Dynamic Programming) table to store the maximum points
+    // dp[i][j] represents the maximum points at day i, considering the last activity as j
+    vector<vector<int>> dp(n, vector<int>(4, 0));
 
-// TC :
-// SC :
+    // Initialize the DP table for the first day (day 0)
+    dp[0][0] = max(points[0][1], points[0][2]);
+    dp[0][1] = max(points[0][0], points[0][2]);
+    dp[0][2] = max(points[0][0], points[0][1]);
+    dp[0][3] = max(points[0][0], max(points[0][1], points[0][2]));
+
+    // Iterate through the days starting from day 1
+    for (int day = 1; day < n; day++)
+    {
+        for (int last = 0; last < 4; last++)
+        {
+            dp[day][last] = 0;
+            // Iterate through the tasks for the current day
+            for (int task = 0; task <= 2; task++)
+            {
+                if (task != last)
+                {
+                    // Calculate the points for the current activity and add it to the
+                    // maximum points obtained on the previous day (recursively calculated)
+                    int activity = points[day][task] + dp[day - 1][task];
+                    // Update the maximum points for the current day and last activity
+                    dp[day][last] = max(dp[day][last], activity);
+                }
+            }
+        }
+    }
+
+    // The maximum points for the last day with any activity can be found in dp[n-1][3]
+    return dp[n - 1][3];
+}
 // Most Optimal -----Space Optimization----->
-// TC :
-// SC :
+// Time Complexity: O(N*4*3)
+// Reason: There are three nested loops
+// Space Complexity: O(4)
+// Reason: We are using an external array of size ‘4’ to store only one row.
+int maximumPointsSopti(vector<vector<int>> &points, int n)
+{
+    // Initialize a vector to store the maximum points for the previous day's activities
+    vector<int> prev(4, 0);
+
+    // Initialize the DP table for the first day (day 0)
+    prev[0] = max(points[0][1], points[0][2]);
+    prev[1] = max(points[0][0], points[0][2]);
+    prev[2] = max(points[0][0], points[0][1]);
+    prev[3] = max(points[0][0], max(points[0][1], points[0][2]));
+
+    // Iterate through the days starting from day 1
+    for (int day = 1; day < n; day++)
+    {
+        // Create a temporary vector to store the maximum points for the current day's activities
+        vector<int> temp(4, 0);
+        for (int last = 0; last < 4; last++)
+        {
+            temp[last] = 0;
+            // Iterate through the tasks for the current day
+            for (int task = 0; task <= 2; task++)
+            {
+                if (task != last)
+                {
+                    // Calculate the points for the current activity and add it to the
+                    // maximum points obtained on the previous day (stored in prev)
+                    temp[last] = max(temp[last], points[day][task] + prev[task]);
+                }
+            }
+        }
+        // Update prev with the maximum points for the current day
+        prev = temp;
+    }
+
+    // The maximum points for the last day with any activity can be found in prev[3]
+    return prev[3];
+}
 /*
 8.
 ANS :
@@ -998,12 +1147,17 @@ int main()
     // cout << "Recr " << minimizeCostR(20, 3, h) << endl;
     // cout << "Memo " << minimizeCostMemo(20, 3, h) << endl;
     // cout << "Tab " << minimizeCostTab(20, 3, h) << endl;
-    VI h = {2, 7, 9, 3, 2};
+    // VI h = {2, 7, 9, 3, 2};
     // cout << "Recr " << robRecr(h) << endl;
     // cout << "Memo " << robMemo(h) << endl;
     // cout << "Tab " << robTabu(h) << endl;
     // cout << "S opti " << robSopti(h) << endl;
-    cout << "S opti " << robII(h) << endl;
+    // cout << "S opti " << robII(h) << endl;
+    VVI pts = {{1, 2, 5}, {3, 1, 1}, {3, 3, 3}};
+    cout << "Maximum points " << maximumPointsRecr(pts, 3) << endl;
+    cout << "Maximum points " << maximumPointsMemo(pts, 3) << endl;
+    cout << "Maximum points " << maximumPointsTabu(pts, 3) << endl;
+    cout << "Maximum points " << maximumPointsSopti(pts, 3) << endl;
 
     return 0;
 
