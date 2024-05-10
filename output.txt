@@ -1,4 +1,5 @@
-Maximum points 11
-Maximum points 11
-Maximum points 11
-Maximum points 11
+All paths 6
+All paths 2
+All paths 2
+All paths 2
+All paths 2

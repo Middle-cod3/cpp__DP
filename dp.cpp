@@ -122,10 +122,16 @@ Tabulation: Known as the “bottom-up '' dynamic programming, usually the proble
       3. Checking if the sub problem has been previously solved then the value will not be -1
 
 $$$ RECURSION -> MEMOIZATION.
-->i. Loook at the params changin ii. Before returning add it up iii. whenever we call recursion just check if it has been previously computed or not
+->i. Loook at the params changin
+ii. Before returning add it up
+iii. whenever we call recursion just check if it has been previously computed or not
 
 $$$ MEMOIZATION -> TABULATION
-->i.Chekc how much dp array is used then init it. ii.Look for the base case. iii. Try a loop iv. The change recursion code to dp v. At the end inside loop store in dp
+->i.Chekc how much dp array is used then init it.
+ii.Look for the base case.
+iii. Try a loop
+iv. The change recursion code to dp
+v. At the end inside loop store in dp
 
 5️⃣ How do you understand this is a dp problem.
 ----> i.Whenever the questions are like count the total no of ways.
@@ -134,16 +140,23 @@ For Recursion:
 i.Try all possible ways like count or best way then you're trying to apply recursion
 For Memoization:
 you'll see recursaion having overlaping problem then you can use memo...
-6️⃣ Shortcut trick******
+6️⃣ Shortcut trick for 1D DP or recursion******
 ---->
 i. Try to represent the problem in terms of index
 ii. Do all possible stuffs on that index according to the problem statement
 iii. If the qs says count all the ways ->sum up all the stuffs
     if says minimum-> take mini(all stuffs)
     if maxi-> take max(all stuffs)
-7️⃣
+7️⃣ Shortcut trick for 2D DP or recursion******
+i. Express everything in terms of (row,col)
+ii. Do all possible stuffs on that (row,col) according to the problem statement
+iii. If the qs says count all the ways ->sum up all the stuffs
+    if says minimum-> take mini(all stuffs)
+    if maxi-> take max(all stuffs)
 ---->
 */
+
+/*##############################1D DP#################################*/
 
 /*
 1. Fibonacci number
@@ -792,8 +805,11 @@ int robII(vector<int> &nums)
     }
     return max(robSopti(temp1), robSopti(temp2));
 }
+
+/*##############################2D/3D DP & DP ON GRIDS#################################*/
+
 /*
-7. Ninja's Training 
+7. Ninja's Training
 
 ANS : A Ninja has an ‘N’ Day training schedule. He has to perform one of these three activities (Running, Fighting Practice, or Learning New Moves) each day. There are merit points associated with performing an activity each day. The same activity can’t be performed on two consecutive days. We need to find the maximum merit points the ninja can attain in N Days.
 We are given a 2D Array POINTS of size ‘N*3’ which tells us the merit point of specific activity on that particular day. Our task is to calculate the maximum number of merit points that the ninja can earn.
@@ -961,24 +977,153 @@ int maximumPointsSopti(vector<vector<int>> &points, int n)
     return prev[3];
 }
 /*
-8.
-ANS :
+8.Unique Paths
+ANS :  There is a robot on an m x n grid. The robot is initially located at the top-left corner (i.e., grid[0][0]). The robot tries to move to the bottom-right corner (i.e., grid[m - 1][n - 1]). The robot can only move either down or right at any point in time.
+Given the two integers m and n, return the number of possible unique paths that the robot can take to reach the bottom-right corner.
 Input :   || Output :
 */
-// Bruteforce ----------->
-// TC :
-// SC :
+// Bruteforce -----Recursion------>
+// TC : O(2xmxn)
+// SC :O(path len)
+// If question says all paths then we can try
+int allPaths(int m, int n)
+{
+    if (m == 0 || n == 0)
+        return 1;
+    if (m < 0 || n < 0)
+        return 0;
+    return allPaths(m - 1, n) + allPaths(m, n - 1); // Recursive call to explore paths from up and left.
+}
+int uniquePathsRecr(int m, int n)
+{
+    if (m == 1 || n == 1) // Base case: If either dimension is 1, there is only one unique path.
+        return 1;
+    return uniquePathsRecr(m - 1, n) + uniquePathsRecr(m, n - 1); // Recursive call to explore paths from up and left.
+}
 // Better ------Memoization----->
+// Time Complexity: O(M*N)
+// Reason: At max, there will be M*N calls of recursion.
+// Space Complexity: O((N-1)+(M-1)) + O(M*N)
+// Reason: We are using a recursion stack space: O((N-1)+(M-1)), here (N-1)+(M-1) is the path length and an external DP Array of size ‘M*N’.
+int uniquePathsMemoHelper(int i, int j, VVI &dp)
+{
+    // Base case: If we reach the top-left corner (0, 0), there is one way.
+    if (i == 0 && j == 0)
+        return 1;
 
-// TC :
-// SC :
+    // If we go out of bounds or reach a blocked cell, there are no ways.
+    if (i < 0 || j < 0)
+        return 0;
+
+    // If we have already computed the number of ways for this cell, return it.
+    if (dp[i][j] != -1)
+        return dp[i][j];
+
+    // Calculate the number of ways by moving up and left recursively.
+    int up = uniquePathsMemoHelper(i - 1, j, dp);
+    int left = uniquePathsMemoHelper(i, j - 1, dp);
+
+    // Store the result in the dp table and return it.
+    return dp[i][j] = up + left;
+}
+int uniquePathsMemo(int m, int n)
+{
+    VVI dp(m, VI(n, -1));
+    return uniquePathsMemoHelper(m - 1, n - 1, dp);
+}
 // Optimal -----Tabulation----->
+// Time Complexity: O(M*N)
+// Reason: There are two nested loops
+// Space Complexity: O(M*N)
+// Reason: We are using an external array of size ‘M*N’.
+int uniquePathsTabuHelper(int m, int n, vector<vector<int>> &dp)
+{
+    // Loop through the grid using two nested loops
+    for (int i = 0; i < m; i++)
+    {
+        for (int j = 0; j < n; j++)
+        {
+            // Base condition: If we are at the top-left cell (0, 0), there is one way.
+            if (i == 0 && j == 0)
+            {
+                dp[i][j] = 1;
+                continue; // Skip the rest of the loop and continue with the next iteration.
+            }
 
-// TC :
-// SC :
+            // Initialize variables to store the number of ways from the cell above (up) and left (left).
+            int up = 0;
+            int left = 0;
+
+            // If we are not at the first row (i > 0), update 'up' with the value from the cell above.
+            if (i > 0)
+                up = dp[i - 1][j];
+
+            // If we are not at the first column (j > 0), update 'left' with the value from the cell to the left.
+            if (j > 0)
+                left = dp[i][j - 1];
+
+            // Calculate the number of ways to reach the current cell by adding 'up' and 'left'.
+            dp[i][j] = up + left;
+        }
+    }
+
+    // The result is stored in the bottom-right cell (m-1, n-1).
+    return dp[m - 1][n - 1];
+}
+int uniquePathsTabu(int m, int n)
+{
+    VVI dp(m, VI(n, -1));
+    return uniquePathsTabuHelper(m, n, dp);
+}
 // Most Optimal -----Space Optimization----->
-// TC :
-// SC :
+// Time Complexity: O(M*N)
+// Reason: There are two nested loops
+// Space Complexity: O(N)
+// Reason: We are using an external array of size ‘N’ to store only one row.
+int uniquePathsSopti(int m, int n)
+{
+    // Create a vector to represent the previous row of the grid.
+    vector<int> prev(n, 0);
+
+    // Iterate through the rows of the grid.
+    for (int i = 0; i < m; i++)
+    {
+        // Create a temporary vector to represent the current row.
+        vector<int> temp(n, 0);
+
+        // Iterate through the columns of the grid.
+        for (int j = 0; j < n; j++)
+        {
+            // Base case: If we are at the top-left cell (0, 0), there is one way.
+            if (i == 0 && j == 0)
+            {
+                temp[j] = 1;
+                continue;
+            }
+
+            // Initialize variables to store the number of ways from the cell above (up) and left (left).
+            int up = 0;
+            int left = 0;
+
+            // If we are not at the first row (i > 0), update 'up' with the value from the previous row.
+            if (i > 0)
+                up = prev[j];
+
+            // If we are not at the first column (j > 0), update 'left' with the value from the current row.
+            if (j > 0)
+                left = temp[j - 1];
+
+            // Calculate the number of ways to reach the current cell by adding 'up' and 'left'.
+            temp[j] = up + left;
+        }
+
+        // Update the previous row with the values calculated for the current row.
+        prev = temp;
+    }
+
+    // The result is stored in the last cell of the previous row (n-1).
+    return prev[n - 1];
+}
 /*
 9.
 ANS :
@@ -1153,11 +1298,16 @@ int main()
     // cout << "Tab " << robTabu(h) << endl;
     // cout << "S opti " << robSopti(h) << endl;
     // cout << "S opti " << robII(h) << endl;
-    VVI pts = {{1, 2, 5}, {3, 1, 1}, {3, 3, 3}};
-    cout << "Maximum points " << maximumPointsRecr(pts, 3) << endl;
-    cout << "Maximum points " << maximumPointsMemo(pts, 3) << endl;
-    cout << "Maximum points " << maximumPointsTabu(pts, 3) << endl;
-    cout << "Maximum points " << maximumPointsSopti(pts, 3) << endl;
+    // VVI pts = {{1, 2, 5}, {3, 1, 1}, {3, 3, 3}};
+    // cout << "Maximum points " << maximumPointsRecr(pts, 3) << endl;
+    // cout << "Maximum points " << maximumPointsMemo(pts, 3) << endl;
+    // cout << "Maximum points " << maximumPointsTabu(pts, 3) << endl;
+    // cout << "Maximum points " << maximumPointsSopti(pts, 3) << endl;
+    cout << "All paths " << allPaths(2, 2) << endl;
+    cout << "All paths " << uniquePathsRecr(2, 2) << endl;
+    cout << "All paths " << uniquePathsMemo(2, 2) << endl;
+    cout << "All paths " << uniquePathsTabu(2, 2) << endl;
+    cout << "All paths " << uniquePathsSopti(2, 2) << endl;
 
     return 0;
 
