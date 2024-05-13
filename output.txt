@@ -1,5 +1,4 @@
-All paths 6
-All paths 2
-All paths 2
-All paths 2
-All paths 2
+Recr 2
+Memo 2
+Tabu 2
+Tabu 2

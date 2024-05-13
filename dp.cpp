@@ -1125,24 +1125,172 @@ int uniquePathsSopti(int m, int n)
     return prev[n - 1];
 }
 /*
-9.
-ANS :
+9. Unique Paths II
+ANS : You are given an m x n integer array grid. There is a robot initially located at the top-left corner (i.e., grid[0][0]). The robot tries to move to the bottom-right corner (i.e., grid[m - 1][n - 1]). The robot can only move either down or right at any point in time.
+An obstacle and space are marked as 1 or 0 respectively in grid. A path that the robot takes cannot include any square that is an obstacle.
+Return the number of possible unique paths that the robot can take to reach the bottom-right corner.
+
 Input :   || Output :
 */
-// Bruteforce ----------->
-// TC :
-// SC :
+// Bruteforce -----Recursion------>
+// TC : O(2xmxn)
+// SC :O(path len)
+// Here addintion of a deadsell means one more base condition
+int uniquePathsWithObstaclesHelper(int m, int n,
+                                   vector<vector<int>> &obstacleGrid)
+{
+    // Base case: if the current cell is an obstacle, return 0
+    if (obstacleGrid[m][n] == 1)
+        return 0;
+
+    // Base case: if reached the bottom-right cell, return 1
+    if (m == obstacleGrid.size() - 1 && n == obstacleGrid[0].size() - 1)
+        return 1;
+
+    int paths = 0;
+    // Move right
+    if (n + 1 < obstacleGrid[0].size())
+        paths += uniquePathsWithObstaclesHelper(m, n + 1, obstacleGrid);
+    // Move down
+    if (m + 1 < obstacleGrid.size())
+        paths += uniquePathsWithObstaclesHelper(m + 1, n, obstacleGrid);
+
+    return paths;
+}
+
+int uniquePathsWithObstaclesRecr(vector<vector<int>> &arr)
+{
+
+    return uniquePathsWithObstaclesHelper(0, 0, arr);
+}
 // Better ------Memoization----->
+// Time Complexity: O(N*M)
+// Reason: At max, there will be N*M calls of recursion.
+// Space Complexity: O((M-1)+(N-1)) + O(N*M)
+// Reason: We are using a recursion stack space:O((M-1)+(N-1)), here (M-1)+(N-1) is the path length and an external DP Array of size ‘N*M’.
+int mod = (int)(1e9 + 7);
+int uniquePathsWithObstaclesMemoHelper(int i, int j,
+                                       vector<vector<int>> &maze,
+                                       vector<vector<int>> &dp)
+{
+    // Base cases
+    if (i < 0 || j < 0 || maze[i][j] == 1)
+        return 0; // If we go out of bounds or there's an obstacle at (i, j), return 0
+    if (i == 0 && j == 0)
+        return 1; // If we reach the destination (0, 0), return 1
+    if (dp[i][j] != -1)
+        return dp[i][j]; // If the result is already computed, return it
 
-// TC :
-// SC :
+    // Recursive calls to explore paths from (i, j) to (0, 0)
+    int up = uniquePathsWithObstaclesMemoHelper(i - 1, j, maze, dp);
+    int left = uniquePathsWithObstaclesMemoHelper(i, j - 1, maze, dp);
+
+    // Store the result in the DP table and return it
+    return dp[i][j] = (up + left) % mod;
+}
+int uniquePathsWithObstaclesMemo(vector<vector<int>> &arr)
+{
+    int n = SZ(arr), m = SZ(arr[0]);
+    VVI dp(n, VI(m, -1));
+    return uniquePathsWithObstaclesMemoHelper(n - 1, m - 1, arr, dp);
+}
 // Optimal -----Tabulation----->
+// Time Complexity: O(N*M)
+// Reason: There are two nested loops
+// Space Complexity: O(N*M)
+// Reason: We are using an external array of size ‘N*M’’.
+int uniquePathsWithObstaclesTabuHelper(int n, int m, vector<vector<int>> &maze,
+                                       vector<vector<int>> &dp)
+{
+    for (int i = 0; i < n; i++)
+    {
+        for (int j = 0; j < m; j++)
+        {
+            // Base conditions
+            if (maze[i][j] == 1)
+            {
+                dp[i][j] = 0; // If there's an obstacle at (i, j), no paths can pass through it
+                continue;
+            }
+            if (i == 0 && j == 0)
+            {
+                dp[i][j] = 1; // If we are at the starting point, there is one path to it
+                continue;
+            }
 
-// TC :
-// SC :
+            int up = 0;
+            int left = 0;
+
+            // Check if we can move up and left (if not at the edge of the maze)
+            if (i > 0)
+                up = dp[i - 1][j]; // Number of paths from above
+            if (j > 0)
+                left = dp[i][j - 1]; // Number of paths from the left
+
+            // Total number of paths to reach (i, j) is the sum of paths from above and left
+            dp[i][j] = (up + left) % mod;
+        }
+    }
+
+    // The final result is stored in dp[n-1][m-1], which represents the destination
+    return dp[n - 1][m - 1];
+}
+int uniquePathsWithObstaclesTabu(vector<vector<int>> &arr)
+{
+    int n = SZ(arr), m = SZ(arr[0]);
+    VVI dp(n, VI(m, -1));
+    return uniquePathsWithObstaclesTabuHelper(n, m, arr, dp);
+}
 // Most Optimal -----Space Optimization----->
-// TC :
-// SC :
+// Time Complexity: O(M*N)
+// Reason: There are two nested loops
+// Space Complexity: O(N)
+// Reason: We are using an external array of size ‘N’ to store only one row.
+
+int uniquePathsWithObstaclesSopti(vector<vector<int>> &maze)
+{
+    int n = maze.size();    // Number of rows
+    int m = maze[0].size(); // Number of columns
+
+    vector<int> prev(m, 0); // Initialize a vector to store the previous row's path counts
+
+    for (int i = 0; i < n; i++)
+    {
+        vector<int> temp(m, 0); // Initialize a temporary vector for the current row
+
+        for (int j = 0; j < m; j++)
+        {
+            // Base conditions
+            if (maze[i][j] == 1)
+            {
+                temp[j] = 0; // If there's an obstacle at (i, j), no paths can pass through it
+                continue;
+            }
+            if (i == 0 && j == 0)
+            {
+                temp[j] = 1; // If we are at the starting point, there is one path to it
+                continue;
+            }
+
+            int up = 0;
+            int left = 0;
+
+            // Check if we can move up and left (if not at the edge of the maze)
+            if (i > 0)
+                up = prev[j]; // Number of paths from above (previous row)
+            if (j > 0)
+                left = temp[j - 1]; // Number of paths from the left (current row)
+
+            // Total number of paths to reach (i, j) is the sum of paths from above and left
+            temp[j] = up + left;
+        }
+
+        prev = temp; // Update the previous row with the current row
+    }
+
+    // The final result is stored in prev[m - 1], which represents the destination in the last column
+    return prev[m - 1];
+}
 /*
 10.
 ANS :
@@ -1303,12 +1451,16 @@ int main()
     // cout << "Maximum points " << maximumPointsMemo(pts, 3) << endl;
     // cout << "Maximum points " << maximumPointsTabu(pts, 3) << endl;
     // cout << "Maximum points " << maximumPointsSopti(pts, 3) << endl;
-    cout << "All paths " << allPaths(2, 2) << endl;
-    cout << "All paths " << uniquePathsRecr(2, 2) << endl;
-    cout << "All paths " << uniquePathsMemo(2, 2) << endl;
-    cout << "All paths " << uniquePathsTabu(2, 2) << endl;
-    cout << "All paths " << uniquePathsSopti(2, 2) << endl;
-
+    // cout << "All paths " << allPaths(2, 2) << endl;
+    // cout << "All paths " << uniquePathsRecr(2, 2) << endl;
+    // cout << "All paths " << uniquePathsMemo(2, 2) << endl;
+    // cout << "All paths " << uniquePathsTabu(2, 2) << endl;
+    // cout << "All paths " << uniquePathsSopti(2, 2) << endl;
+    VVI obs = {{0, 0, 0}, {0, 1, 0}, {0, 0, 0}};
+    cout << "Recr " << uniquePathsWithObstaclesRecr(obs) << endl;
+    cout << "Memo " << uniquePathsWithObstaclesMemo(obs) << endl;
+    cout << "Tabu " << uniquePathsWithObstaclesTabu(obs) << endl;
+    cout << "Tabu " << uniquePathsWithObstaclesSopti(obs) << endl;
     return 0;
 
     //  End code here-------->>
