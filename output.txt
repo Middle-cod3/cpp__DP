@@ -1,4 +1,1 @@
-Recr 2
-Memo 2
-Tabu 2
-Tabu 2
+Min path R 7Min path R 7

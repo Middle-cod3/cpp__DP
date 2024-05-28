@@ -106,7 +106,9 @@ void printAdjList(const vector<int> adj[], int V)
 /*
 Li'll Interoduction----->>>
 1️⃣ What is Dynamic Programing?
-----> Dynamic Programming (DP) is a method used in mathematics and computer science to solve complex problems by breaking them down into simpler subproblems. By solving each subproblem only once and storing the results, it avoids redundant computations, leading to more efficient solutions for a wide range of problems.
+----> Dynamic Programming (DP) is a method used in mathematics and computer science to solve complex problems by breaking them down into simpler subproblems.
+By solving each subproblem only once and storing the results, it avoids redundant computations,
+ leading to more efficient solutions for a wide range of problems.
 2️⃣ The two common dynamic programming approaches are:
 ---->
 Memoization: Known as the “top-down” dynamic programming, usually the problem is solved in the direction of the main problem to the base cases.
@@ -127,7 +129,7 @@ ii. Before returning add it up
 iii. whenever we call recursion just check if it has been previously computed or not
 
 $$$ MEMOIZATION -> TABULATION
-->i.Chekc how much dp array is used then init it.
+->i.Check how much dp array is used then init it.
 ii.Look for the base case.
 iii. Try a loop
 iv. The change recursion code to dp
@@ -417,7 +419,12 @@ why not we're using greedy algo?
 so for that we'll get +20+0+40=60
 but in no-greedy we'll get +30+0+10=40
 Thats'y we're not using greedy algo
-
+Base Case:
+If the frog is at the first stair (n == 1), no energy is required because the frog starts there. Therefore, frogJumpRecur(1) returns 0.
+Recr :
+Jump from n-1 stair: The energy required to jump from the n-1 stair to the n stair is the energy already spent to get to the n-1 stair plus the absolute difference in heights between stair n and stair n-1.
+Jump from n-2 stair: The energy required to jump from the n-2 stair to the n stair is the energy already spent to get to the n-2 stair plus the absolute difference in heights between stair n and stair n-2.
+The goal is to find the minimum energy between these two possible paths.
 */
 // Bruteforce ------Recursion----->
 // TC :O(2^N)
@@ -664,7 +671,7 @@ int generateSubsequences(int ind, VI &nums)
 int robRecr(vector<int> &nums)
 {
     int n = SZ(nums);
-    return generateSubsequences(n, nums);
+    return generateSubsequences(n - 1, nums);
 }
 // Better ------Memoization----->
 // Time Complexity: O(N)
@@ -786,6 +793,22 @@ Input :   || Output :
 // TC :
 // SC :
 // Most Optimal -----Space Optimization----->
+/*
+Intuition : Houses arranged in a circular manner, meaning the first and last house are neighbors.
+Two separate scenarios:
+Robbing houses from the second house to the last house (excluding the first house).
+Robbing houses from the first house to the second-to-last house (excluding the last house).
+
+temp1 and temp2 are vectors to store the two subarrays.
+If there is only one house (n == 1), return the money in that house because there is no constraint.
+Iterate through the original array nums.
+temp1 gets all elements of nums except the first element.
+temp2 gets all elements of nums except the last element.
+Compute the maximum money that can be robbed from temp1 and temp2.
+Here we call Space OPtimized function cz this functions conditions is house are in a adj manner not circle so we can easily find maximum
+Return the maximum of these two results.
+*/
+
 // Time Complexity: O(N )
 // Reason: We are running a simple iterative loop, two times. Therefore total time complexity will be O(N) + O(N) ≈ O(N)
 // Space Complexity: O(1)
@@ -811,19 +834,39 @@ int robII(vector<int> &nums)
 /*
 7. Ninja's Training
 
-ANS : A Ninja has an ‘N’ Day training schedule. He has to perform one of these three activities (Running, Fighting Practice, or Learning New Moves) each day. There are merit points associated with performing an activity each day. The same activity can’t be performed on two consecutive days. We need to find the maximum merit points the ninja can attain in N Days.
-We are given a 2D Array POINTS of size ‘N*3’ which tells us the merit point of specific activity on that particular day. Our task is to calculate the maximum number of merit points that the ninja can earn.
+ANS : A Ninja has an ‘N’ Day training schedule. He has to perform one of these three activities (Running, Fighting Practice, or Learning New Moves) each day. There are merit points associated with performing an activity each day. The same activity can’t be performed on two consecutive days.
+We need to find the maximum merit points the ninja can attain in N Days.
+We are given a 2D Array POINTS of size ‘N*3’ which tells us the merit point of specific activity on that particular day.
+Our task is to calculate the maximum number of merit points that the ninja can earn.
 Input :   || Output :
 Why a Greedy Solution doesn’t work?
 The first approach that comes to our mind is the greedy approach. We will see with an example how a greedy solution doesn’t give the correct solution.
-We want to know the maximum amount of merit points. For the greedy approach, we will consider the maximum point activity each day, respecting the condition that activity can’t be performed on consecutive days.
+We want to know the maximum amount of merit points. For the greedy approach, we will consider the maximum point activity each day,
+respecting the condition that activity can’t be performed on consecutive days.
 On Day 0, we will consider the activity with maximum points i.e 50.
-On Day 1, the maximum point activity is 100 but we can’t perform the same activity in two consecutive days. Therefore we will take the next maximum point activity of 11 points.
+On Day 1, the maximum point activity is 100 but we can’t perform the same activity in two consecutive days.
+Therefore we will take the next maximum point activity of 11 points.
 Total Merit points by Greedy Solution : 50+11 = 61
-As this is a small example we can clearly see that we have a better approach, to consider activity with 10 points on day0 and 100 points on day1. It gives us the total merit points as 110 which is better than the greedy solution.
+As this is a small example we can clearly see that we have a better approach, to consider activity with 10 points on day0 and 100 points on day1.
+It gives us the total merit points as 110 which is better than the greedy solution.
 So we see that the greedy solution restricts us from choices and we can lose activity with better points on the next day in the greedy solution. Therefore, it is better to try out all the possible choices as our next solution. We will use recursion to generate all the possible choices.
 */
 // Bruteforce ------Recursion----->
+/*
+Intuition Behind the Code
+Base Case:
+
+The base case occurs when day == 0, meaning it's the first day. For the first day, you can choose any task except the task indexed by last (which is a task that might have been chosen the day before if it existed).
+Iterate through all tasks (0, 1, 2), skipping the task equal to last, and find the maximum points you can get for the first day.
+Recursive Case:
+
+For each day (from n-1 to 0), iterate through each task (0, 1, 2) and recursively calculate the points for the current task plus the maximum points from the previous day, ensuring that the current task is not the same as the previous task (last).
+Keep track of the maximum points obtained from these choices.
+Recursive Helper Function:
+
+maximumPointsRecrHelper(points, day, last) is the recursive helper function where day is the current day you are considering, and last is the task that was chosen the day before.
+The function returns the maximum points that can be accumulated from day 0 to day, given that the task on day is not the same as last.
+*/
 // Time Complexity: O(N*4*3)
 // Reason: There are N*4 states and for every state, we are running a for loop iterating three times.
 // Space Complexity: O(N) + O(N*4)
@@ -1005,6 +1048,16 @@ int uniquePathsRecr(int m, int n)
 // Reason: At max, there will be M*N calls of recursion.
 // Space Complexity: O((N-1)+(M-1)) + O(M*N)
 // Reason: We are using a recursion stack space: O((N-1)+(M-1)), here (N-1)+(M-1) is the path length and an external DP Array of size ‘M*N’.
+/*
+if (m == 0 && n == 0) return 1;
+
+Purpose: This base condition handles the case when the robot reaches the starting point (0, 0). There is exactly one way to be at the starting point, which is simply starting there.
+Explanation: When m == 0 and n == 0, it means we are at the top-left corner. Since there is one unique way to be at the starting point (by starting there), we return 1.
+if (m < 0 || n < 0) return 0;
+
+Purpose: This base condition handles the boundaries of the grid.
+Explanation: If the robot moves out of the grid's boundaries (i.e., to a negative index), there are no valid paths to the destination from there. Thus, we return 0 to indicate an invalid path.
+*/
 int uniquePathsMemoHelper(int i, int j, VVI &dp)
 {
     // Base case: If we reach the top-left corner (0, 0), there is one way.
@@ -1080,6 +1133,8 @@ int uniquePathsTabu(int m, int n)
 // Reason: There are two nested loops
 // Space Complexity: O(N)
 // Reason: We are using an external array of size ‘N’ to store only one row.
+// Objective: Reduce space complexity by using a single-dimensional array instead of a two-dimensional array.
+// Strategy: Keep track of only the current row and the previous row's results.
 int uniquePathsSopti(int m, int n)
 {
     // Create a vector to represent the previous row of the grid.
@@ -1135,9 +1190,20 @@ Input :   || Output :
 // Bruteforce -----Recursion------>
 // TC : O(2xmxn)
 // SC :O(path len)
-// Here addintion of a deadsell means one more base condition
-int uniquePathsWithObstaclesHelper(int m, int n,
-                                   vector<vector<int>> &obstacleGrid)
+// Here addition of a deadsell means one more base condition
+/*
+Why Different Starting Points:
+
+Without Obstacles:
+Starting from the bottom-right and moving to the top-left is straightforward for a simple grid without obstacles because every cell has exactly two choices (left or up) until it reaches the boundaries.
+It leverages the simplicity of the problem where each cell's value depends only on its right and bottom neighbors.
+
+With Obstacles:
+Starting from the top-left and moving to the bottom-right is more intuitive when dealing with obstacles because it allows the function to stop and return immediately when an obstacle is encountered.
+This approach aligns with the typical dynamic programming solution where you build the solution from the start and handle obstacles as you encounter them.
+*/
+// Its going one direction so its return 1 for big grid it will return accordingly
+int uniquePathsWithObstaclesHelper(int m, int n, vector<vector<int>> &obstacleGrid)
 {
     // Base case: if the current cell is an obstacle, return 0
     if (obstacleGrid[m][n] == 1)
@@ -1169,9 +1235,7 @@ int uniquePathsWithObstaclesRecr(vector<vector<int>> &arr)
 // Space Complexity: O((M-1)+(N-1)) + O(N*M)
 // Reason: We are using a recursion stack space:O((M-1)+(N-1)), here (M-1)+(N-1) is the path length and an external DP Array of size ‘N*M’.
 int mod = (int)(1e9 + 7);
-int uniquePathsWithObstaclesMemoHelper(int i, int j,
-                                       vector<vector<int>> &maze,
-                                       vector<vector<int>> &dp)
+int uniquePathsWithObstaclesMemoHelper(int i, int j, vector<vector<int>> &maze, vector<vector<int>> &dp)
 {
     // Base cases
     if (i < 0 || j < 0 || maze[i][j] == 1)
@@ -1292,17 +1356,54 @@ int uniquePathsWithObstaclesSopti(vector<vector<int>> &maze)
     return prev[m - 1];
 }
 /*
-10.
-ANS :
+10. Minimum Path Sum In a Grid
+ANS : Given a m x n grid filled with non-negative numbers, find a path from top left to bottom right, which minimizes the sum of all numbers along its path.
+Note: You can only move either down or right at any point in time.
 Input :   || Output :
 */
-// Bruteforce ----------->
-// TC :
-// SC :
+// Bruteforce ------RECURSION----->
+// TC :   O(2(mxn)) due to the exponential number of recursive calls in the worst case.
+// SC : O(m+n) due to the depth of the recursion stack.
+int minPathSumRecr(int m, int n, VVI &grid)
+{
+    // Base case :
+    if (m == 0 && n == 0)
+        return grid[0][0];
+    if (m < 0 || n < 0)
+        return 1e9;
+    int up = grid[m][n] + minPathSumRecr(m - 1, n, grid);
+    int left = grid[m][n] + minPathSumRecr(m, n - 1, grid);
+    return min(up, left);
+}
+int minPathSum(vector<vector<int>> &grid)
+{
+    int m = SZ(grid);
+    int n = SZ(grid[0]);
+    return minPathSumRecr(m - 1, n - 1, grid);
+}
 // Better ------Memoization----->
-
 // TC :
 // SC :
+int minPathSumMemoH(int m, int n, VVI &grid, VVI &dp)
+{
+    // Base case :
+    if (m == 0 && n == 0)
+        return grid[0][0];
+    if (m < 0 || n < 0)
+        return 1e9;
+    if (dp[m][n] != -1)
+        return dp[m][n];
+    int up = grid[m][n] + minPathSumMemoH(m - 1, n, grid, dp);
+    int left = grid[m][n] + minPathSumMemoH(m, n - 1, grid, dp);
+    return dp[m][n] = min(up, left);
+}
+int minPathSumMemo(vector<vector<int>> &grid)
+{
+    int m = SZ(grid);
+    int n = SZ(grid[0]);
+    VVI dp(m, VI(n, -1));
+    return minPathSumMemoH(m - 1, n - 1, grid, dp);
+}
 // Optimal -----Tabulation----->
 
 // TC :
@@ -1423,7 +1524,7 @@ int main()
     // cout << "Enter the value of n: ";
     // cin >> n;
     // VI dp(n + 1, -1);
-    // memset(dp,-1,sizeof dp);
+    // // memset(dp,-1,sizeof dp);
     // cout << "The " << n << "th Fibonacci number is: " << fibonacciNumberRecur(n) << endl;
     // cout << "The " << n << "th Fibonacci number is: " << fibonacciNumberMemo(n, dp) << endl;
     // cout << "The " << n << "th Fibonacci number is: " << fibonacciNumberTabu(n, dp) << endl;
@@ -1456,12 +1557,14 @@ int main()
     // cout << "All paths " << uniquePathsMemo(2, 2) << endl;
     // cout << "All paths " << uniquePathsTabu(2, 2) << endl;
     // cout << "All paths " << uniquePathsSopti(2, 2) << endl;
-    VVI obs = {{0, 0, 0}, {0, 1, 0}, {0, 0, 0}};
-    cout << "Recr " << uniquePathsWithObstaclesRecr(obs) << endl;
-    cout << "Memo " << uniquePathsWithObstaclesMemo(obs) << endl;
-    cout << "Tabu " << uniquePathsWithObstaclesTabu(obs) << endl;
-    cout << "Tabu " << uniquePathsWithObstaclesSopti(obs) << endl;
-    return 0;
+    // VVI obs = {{0, 0, 0}, {0, 1, 0}, {0, 0, 0}};
+    // cout << "Recr " << uniquePathsWithObstaclesRecr(obs) << endl;
+    // cout << "Memo " << uniquePathsWithObstaclesMemo(obs) << endl;
+    // cout << "Tabu " << uniquePathsWithObstaclesTabu(obs) << endl;
+    // cout << "Tabu " << uniquePathsWithObstaclesSopti(obs) << endl;
+    VVI grid = {{1, 3, 1}, {1, 5, 1}, {4, 2, 1}};
+    cout << "Min path R " << minPathSum(grid) << endl;
+    cout << "Min path R " << minPathSumMemo(grid) << endl;
 
     //  End code here-------->>
 
