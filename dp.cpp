@@ -130,9 +130,9 @@ iii. whenever we call recursion just check if it has been previously computed or
 
 $$$ MEMOIZATION -> TABULATION
 ->i.Check how much dp array is used then init it.
-ii.Look for the base case.
+ii.Look for the base case.(Insteadof checking outer boundry first you can use i>0 for doing call)
 iii. Try a loop
-iv. The change recursion code to dp
+iv. The change recursion code to dp (Calls are going to according i,j)
 v. At the end inside loop store in dp
 
 5️⃣ How do you understand this is a dp problem.
@@ -142,16 +142,16 @@ For Recursion:
 i.Try all possible ways like count or best way then you're trying to apply recursion
 For Memoization:
 you'll see recursaion having overlaping problem then you can use memo...
-6️⃣ Shortcut trick for 1D DP or recursion******
+6️⃣ Shortcut trick for 1D DP or RECURSION******
 ---->
 i. Try to represent the problem in terms of index
-ii. Do all possible stuffs on that index according to the problem statement
+ii. Do all possible stuffs on that index according to the problem statement, Write base case and check for boundry
 iii. If the qs says count all the ways ->sum up all the stuffs
     if says minimum-> take mini(all stuffs)
     if maxi-> take max(all stuffs)
-7️⃣ Shortcut trick for 2D DP or recursion******
+7️⃣ Shortcut trick for 2D DP or RECURSION******
 i. Express everything in terms of (row,col)
-ii. Do all possible stuffs on that (row,col) according to the problem statement
+ii. Do all possible stuffs on that (row,col) according to the problem statement, Write base case and check for boundry
 iii. If the qs says count all the ways ->sum up all the stuffs
     if says minimum-> take mini(all stuffs)
     if maxi-> take max(all stuffs)
@@ -1382,8 +1382,10 @@ int minPathSum(vector<vector<int>> &grid)
     return minPathSumRecr(m - 1, n - 1, grid);
 }
 // Better ------Memoization----->
-// TC :
-// SC :
+// Time Complexity: O(N*M)
+// Reason: At max, there will be N*M calls of recursion.
+// Space Complexity: O((M-1)+(N-1)) + O(N*M)
+// Reason: We are using a recursion stack space: O((M-1)+(N-1)), here (M-1)+(N-1) is the path length and an external DP Array of size ‘N*M’.
 int minPathSumMemoH(int m, int n, VVI &grid, VVI &dp)
 {
     // Base case :
@@ -1405,31 +1407,229 @@ int minPathSumMemo(vector<vector<int>> &grid)
     return minPathSumMemoH(m - 1, n - 1, grid, dp);
 }
 // Optimal -----Tabulation----->
+// Time Complexity: O(N*M)
+// Reason: There are two nested loops
+// Space Complexity: O(N*M)
+// Reason: We are using an external array of size ‘N*M’’.
 
-// TC :
-// SC :
+int minPathSumTabu(vector<vector<int>> &grid)
+{
+
+    int n = grid.size();
+    int m = grid[0].size();
+    VVI dp(n, VI(m, 0));
+    FOR(i, n)
+    {
+        FOR(j, m)
+        {
+            if (i == 0 && j == 0)
+                dp[i][j] =
+                    grid[i][j]; // If we are at the top-left corner, the
+                                // minimum path sum is the value at (0, 0)
+            else
+            {
+                // Calculate the minimum path sum considering moving up and
+                // moving left
+                int up = grid[i][j];
+                if (i > 0)
+                    up += dp[i - 1]
+                            [j]; // Include the minimum path sum from above
+                else
+                    up += 1e9; // A large value if moving up is not possible
+                               // (out of bounds)
+
+                int left = grid[i][j];
+                if (j > 0)
+                    left += dp[i][j - 1]; // Include the minimum path sum
+                                          // from the left
+                else
+                    left += 1e9; // A large value if moving left is not
+                                 // possible (out of bounds)
+
+                // Store the minimum path sum in dp[i][j]
+                dp[i][j] = min(up, left);
+            }
+        }
+    }
+    // The final result is stored in dp[n-1][m-1], which represents the
+    // destination
+    return dp[n - 1][m - 1];
+}
 // Most Optimal -----Space Optimization----->
-// TC :
-// SC :
+// Time Complexity: O(M*N)
+// Reason: There are two nested loops
+// Space Complexity: O(N)
+// Reason: We are using an external array of size ‘N’ to store only one row.
+int minPathSumSO(VVI &grid)
+{
+    int n = grid.size();
+    int m = grid[0].size();
+    vector<int> prev(m, 0); // Initialize a vector to store the previous
+                            // row's minimum path sums
+
+    for (int i = 0; i < n; i++)
+    {
+        vector<int> temp(
+            m, 0); // Initialize a temporary vector for the current row
+        for (int j = 0; j < m; j++)
+        {
+            if (i == 0 && j == 0)
+                temp[j] =
+                    grid[i][j]; // If we are at the top-left corner, the
+                                // minimum path sum is the value at (0, 0)
+            else
+            {
+                // Calculate the minimum path sum considering moving up and
+                // moving left
+                int up = grid[i][j];
+                if (i > 0)
+                    up += prev[j]; // Include the minimum path sum from
+                                   // above (previous row)
+                else
+                    up += 1e9; // A large value if moving up is not possible
+                               // (out of bounds)
+
+                int left = grid[i][j];
+                if (j > 0)
+                    left += temp[j - 1]; // Include the minimum path sum
+                                         // from the left (current row)
+                else
+                    left += 1e9; // A large value if moving left is not
+                                 // possible (out of bounds)
+
+                // Store the minimum path sum in temp[j]
+                temp[j] = min(up, left);
+            }
+        }
+        prev = temp; // Update the previous row with the current row
+    }
+
+    // The final result is stored in prev[m-1], which represents the
+    // destination in the last column
+    return prev[m - 1];
+}
 /*
-11.
-ANS :
+11. Minimum path sum in Triangular Grid
+ANS : Given a triangle array, return the minimum path sum from top to bottom.
+For each step, you may move to an adjacent number of the row below. More formally, if you are on index i on the current row, you may move to either index i or index i + 1 on the next row.
 Input :   || Output :
 */
 // Bruteforce ----------->
-// TC :
-// SC :
+// TC :O(2^n)
+// SC :O(n) Recursion stack space
+int minimumTotalRecr(int i, int j, VVI &tri)
+{
+    int n = SZ(tri);
+    // Base case:
+    if (i == n - 1)
+        return tri[n - 1][j]; // If i in a last row
+    int down = tri[i][j] + minimumTotalRecr(i + 1, j, tri);
+    int dig = tri[i][j] + minimumTotalRecr(i + 1, j + 1, tri);
+    return min(down, dig);
+};
+int minimumTotalR(vector<vector<int>> &tri)
+{
+    // RECURSION TC : SC :
+    return minimumTotalRecr(0, 0, tri); // Here we don't know the ending
+}
 // Better ------Memoization----->
+// Time Complexity: O(N*N)
+// Reason: There are two nested loops
+// Space Complexity: O(N*N)
+// Reason: We are using an external array of size ‘N*N’. The stack space will be eliminated.
+int minimumTotalMemo(int i, int j, VVI &tri, VVI &dp)
+{
+    int n = SZ(tri);
+    // Base case:
+    if (i == n - 1)
+        return tri[n - 1][j]; // If i in a last row
+    if (dp[i][j] != -1)
+        return dp[i][j]; // If dp already haev calculated
+    int down = tri[i][j] + minimumTotalMemo(i + 1, j, tri, dp);
+    int dig = tri[i][j] + minimumTotalMemo(i + 1, j + 1, tri, dp);
+    return dp[i][j] = min(down, dig);
+}
+int minimumTotalM(vector<vector<int>> &tri)
+{
 
-// TC :
-// SC :
+    // MEMOIZATION TC : SC :
+    int n = SZ(tri);
+    VVI dp(n, VI(n, -1));
+    return minimumTotalMemo(0, 0, tri, dp);
+}
 // Optimal -----Tabulation----->
+// Time Complexity: O(N*N)
+// Reason: There are two nested loops
+// Space Complexity: O(N*N)
+// Reason: We are using an external array of size ‘N*N’. The stack space will be eliminated
+int minimumTotalT(vector<vector<int>> &tri)
+{
 
-// TC :
-// SC :
+    // TABULATION TC : SC :
+    int n = SZ(tri);
+    VVI dp(n, VI(n, -1));
+
+    // Initialize the bottom row of dp with the values from the triangle
+    for (int j = 0; j < n; j++)
+    {
+        dp[n - 1][j] = tri[n - 1][j];
+    }
+
+    // Iterate through the tri rows in reverse order
+    for (int i = n - 2; i >= 0; i--)
+    {
+        for (int j = i; j >= 0; j--)
+        {
+            // Calculate the minimum path sum for the current cell
+            int down = tri[i][j] + dp[i + 1][j];
+            int diagonal = tri[i][j] + dp[i + 1][j + 1];
+
+            // Store the minimum of the two possible paths in dp
+            dp[i][j] = min(down, diagonal);
+        }
+    }
+
+    // The top-left cell of dp now contains the minimum path sum
+    return dp[0][0];
+}
 // Most Optimal -----Space Optimization----->
-// TC :
-// SC :
+// Time Complexity: O(N*N)
+// Reason: There are two nested loops
+// Space Complexity: O(N)
+// Reason: We are using an external array of size ‘N’ to store only one row.
+int minimumTotalSO(vector<vector<int>> &tri)
+{
+
+    int n = SZ(tri);
+    // Create two arrays to store the current and previous row values
+    vector<int> front(n, 0); // Represents the previous row
+    vector<int> cur(n, 0);   // Represents the current row
+
+    // Initialize the front array with values from the last row of the triangle
+    for (int j = 0; j < n; j++)
+    {
+        front[j] = tri[n - 1][j];
+    }
+
+    // Iterate through the tri rows in reverse order
+    for (int i = n - 2; i >= 0; i--)
+    {
+        for (int j = i; j >= 0; j--)
+        {
+            // Calculate the minimum path sum for the current cell
+            int down = tri[i][j] + front[j];
+            int diagonal = tri[i][j] + front[j + 1];
+
+            // Store the minimum of the two possible paths in the current row
+            cur[j] = min(down, diagonal);
+        }
+        // Update the front array with the values from the current row
+        front = cur;
+    }
+
+    // The front array now contains the minimum path sum from the top to the bottom of the triangle
+    return front[0];
+}
 
 /*
 12.
@@ -1562,9 +1762,19 @@ int main()
     // cout << "Memo " << uniquePathsWithObstaclesMemo(obs) << endl;
     // cout << "Tabu " << uniquePathsWithObstaclesTabu(obs) << endl;
     // cout << "Tabu " << uniquePathsWithObstaclesSopti(obs) << endl;
-    VVI grid = {{1, 3, 1}, {1, 5, 1}, {4, 2, 1}};
-    cout << "Min path R " << minPathSum(grid) << endl;
-    cout << "Min path R " << minPathSumMemo(grid) << endl;
+    // VVI grid = {{1, 3, 1}, {1, 5, 1}, {4, 2, 1}};
+    // cout << "Min path R " << minPathSum(grid) << endl;
+    // cout << "Min path M " << minPathSumMemo(grid) << endl;
+    // cout << "Min path T " << minPathSumTabu(grid) << endl;
+    // cout << "Min path S " << minPathSumSO(grid) << endl;
+    VVI tri = {{2},
+               {3, 4},
+               {6, 5, 7},
+               {4, 1, 8, 3}};
+    cout << "Min path R " << minimumTotalR(tri) << endl;
+    cout << "Min path M " << minimumTotalM(tri) << endl;
+    cout << "Min path T " << minimumTotalT(tri) << endl;
+    cout << "Min path S " << minimumTotalSO(tri) << endl;
 
     //  End code here-------->>
 

@@ -1,1 +1,4 @@
-Min path R 7Min path R 7
+Min path R 11
+Min path M 11
+Min path T 11
+Min path S 11
