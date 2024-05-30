@@ -156,6 +156,9 @@ iii. If the qs says count all the ways ->sum up all the stuffs
     if says minimum-> take mini(all stuffs)
     if maxi-> take max(all stuffs)
 ---->
+8️⃣Why we're not using Greedy Algorithm?
+------>>Cz of Uniformity greedy always choose minimum elem but here sometimes we dont need minimum elem.
+Example given in Frog Jump redirect to 413 line
 */
 
 /*##############################1D DP#################################*/
@@ -1632,25 +1635,197 @@ int minimumTotalSO(vector<vector<int>> &tri)
 }
 
 /*
-12.
-ANS :
+12. Minimum Falling Path Sum
+ANS : Given an n x n array of integers matrix, return the minimum sum of any falling path through matrix.
+
+A falling path starts at any element in the first row and chooses the element in the next row that is either directly below or diagonally left/right. Specifically, the next element from position (row, col) will be (row + 1, col - 1), (row + 1, col), or (row + 1, col + 1).
 Input :   || Output :
 */
 // Bruteforce ----------->
-// TC :
-// SC :
+// TC : O(3^n)~ exponential in nature SC : O(N)
+int minFallingPathSumRecr(int i, int j, VVI &mat)
+{
+    int m = SZ(mat[0]);
+    // Base Case :
+    if (j < 0 || j >= m)
+        return 1e9; // Boundry check
+    if (i == 0)
+        return mat[0][j]; // If you reached at 1st col then return jth value
+
+    int up = mat[i][j] + minFallingPathSumRecr(i - 1, j, mat);
+    int dl = mat[i][j] + minFallingPathSumRecr(i - 1, j - 1, mat);
+    int dr = mat[i][j] + minFallingPathSumRecr(i - 1, j + 1, mat);
+    return min(up, min(dl, dr));
+}
+int minFallingPathSumR(vector<vector<int>> &mat)
+{
+    int n = SZ(mat[0]);
+    int pathSum = INT_MAX;
+    FOR(j, n)
+    {
+        pathSum = min(minFallingPathSumRecr(n - 1, j, mat), pathSum);
+    }
+    return pathSum;
+}
 // Better ------Memoization----->
-
-// TC :
-// SC :
+// Time Complexity: O(N*N)
+// Reason: At max, there will be M*N calls of recursion to solve a new problem,
+// Space Complexity: O(N) + O(N*M)
+// Reason: We are using a recursion stack space: O(N), where N is the path length and an external DP Array of size ‘N*M’.
+int minFallingPathSumMemo(int i, int j, VVI &mat, VVI &dp)
+{
+    int m = SZ(mat[0]);
+    // Base Case :
+    if (j < 0 || j >= m)
+        return 1e9; // Boundry check
+    if (i == 0)
+        return mat[i][j]; // If you reached at 1st col then return jth value
+    if (dp[i][j] != -1)
+        return dp[i][j];
+    int up = mat[i][j] + minFallingPathSumMemo(i - 1, j, mat, dp);
+    int dl = mat[i][j] + minFallingPathSumMemo(i - 1, j - 1, mat, dp);
+    int dr = mat[i][j] + minFallingPathSumMemo(i - 1, j + 1, mat, dp);
+    return dp[i][j] = min(up, min(dl, dr));
+}
+int minFallingPathSumM(vector<vector<int>> &mat)
+{
+    int n = SZ(mat);
+    int m = SZ(mat[0]);
+    VVI dp(n, VI(m, -1));
+    int pathSum = 1e9;
+    FOR(j, n)
+    pathSum = min(minFallingPathSumMemo(n - 1, j, mat, dp), pathSum);
+    return pathSum;
+}
 // Optimal -----Tabulation----->
+// Time Complexity: O(N*M)
+// Reason: There are two nested loops
+// Space Complexity: O(N*M)
+// Reason: We are using an external array of size ‘N*M’. The stack space will be eliminated.
+int minFallingPathSumT(vector<vector<int>> &mat)
+{
+    int n = SZ(mat);
+    int m = SZ(mat[0]);
+    VVI dp(n, VI(m, 0));
 
-// TC :
-// SC :
+    // Initialize the first row of dp with values from the matrix (base condition)
+    FOR(j, m)
+    dp[0][j] = mat[0][j];
+    // Iterate through the matrix rows starting from the second row
+    for (int i = 1; i < n; i++)
+    {
+        for (int j = 0; j < m; j++)
+        {
+            // Calculate the maximum path sum for the current cell considering three possible directions: up, left diagonal, and right diagonal
+
+            // Up direction
+            int up = mat[i][j] + dp[i - 1][j];
+
+            // Left diagonal direction (if it's a valid move)
+            int leftDiagonal = mat[i][j];
+            if (j - 1 >= 0)
+            {
+                leftDiagonal += dp[i - 1][j - 1];
+            }
+            else
+            {
+                leftDiagonal += 1e9; // A very large negative value to represent an invalid path
+            }
+
+            // Right diagonal direction (if it's a valid move)
+            int rightDiagonal = mat[i][j];
+            if (j + 1 < m)
+            {
+                rightDiagonal += dp[i - 1][j + 1];
+            }
+            else
+            {
+                rightDiagonal += 1e9; // A very large negative value to represent an invalid path
+            }
+
+            // Store the minimum of the three paths in dp
+            dp[i][j] = min(up, min(leftDiagonal, rightDiagonal));
+        }
+    }
+
+    // Find the minimum value in the last row of dp, which represents the minimum path sums ending at each cell
+    int mini = INT_MAX;
+    for (int j = 0; j < m; j++)
+    {
+        mini = min(mini, dp[n - 1][j]);
+    }
+
+    // The minimum path sum is the minimum value in the last row
+    return mini;
+}
 // Most Optimal -----Space Optimization----->
-// TC :
-// SC :
+// Time Complexity: O(N*M)
+// Reason: There are two nested loops
+// Space Complexity: O(M)
+// Reason: We are using an external array of size ‘M’ to store only one row.
+int minFallingPathSumSO(vector<vector<int>> &matrix)
+{
+    int n = matrix.size();    // Number of rows in the matrix
+    int m = matrix[0].size(); // Number of columns in the matrix
 
+    vector<int> prev(m, 0); // Represents the previous row's maximum path sums
+    vector<int> cur(m, 0);  // Represents the current row's maximum path sums
+
+    // Initialize the first row (base condition)
+    for (int j = 0; j < m; j++)
+    {
+        prev[j] = matrix[0][j];
+    }
+
+    for (int i = 1; i < n; i++)
+    {
+        for (int j = 0; j < m; j++)
+        {
+            // Calculate the maximum path sum for the current cell considering three possible directions: up, left diagonal, and right diagonal
+
+            // Up direction
+            int up = matrix[i][j] + prev[j];
+
+            // Left diagonal direction (if it's a valid move)
+            int leftDiagonal = matrix[i][j];
+            if (j - 1 >= 0)
+            {
+                leftDiagonal += prev[j - 1];
+            }
+            else
+            {
+                leftDiagonal += 1e9; // A very large negative value to represent an invalid path
+            }
+
+            // Right diagonal direction (if it's a valid move)
+            int rightDiagonal = matrix[i][j];
+            if (j + 1 < m)
+            {
+                rightDiagonal += prev[j + 1];
+            }
+            else
+            {
+                rightDiagonal += 1e9; // A very large negative value to represent an invalid path
+            }
+
+            // Store the maximum of the three paths in the current row
+            cur[j] = min(up, min(leftDiagonal, rightDiagonal));
+        }
+
+        // Update the 'prev' array with the values from the 'cur' array for the next iteration
+        prev = cur;
+    }
+
+    // Find the maximum value in the last row of 'prev', which represents the maximum path sums ending at each cell
+    int maxi = INT_MAX;
+    for (int j = 0; j < m; j++)
+    {
+        maxi = min(maxi, prev[j]);
+    }
+
+    // The maximum path sum is the maximum value in the last row of 'prev'
+    return maxi;
+}
 /*
 13.
 ANS :
@@ -1767,14 +1942,21 @@ int main()
     // cout << "Min path M " << minPathSumMemo(grid) << endl;
     // cout << "Min path T " << minPathSumTabu(grid) << endl;
     // cout << "Min path S " << minPathSumSO(grid) << endl;
-    VVI tri = {{2},
-               {3, 4},
-               {6, 5, 7},
-               {4, 1, 8, 3}};
-    cout << "Min path R " << minimumTotalR(tri) << endl;
-    cout << "Min path M " << minimumTotalM(tri) << endl;
-    cout << "Min path T " << minimumTotalT(tri) << endl;
-    cout << "Min path S " << minimumTotalSO(tri) << endl;
+    // VVI tri = {{2},
+    //            {3, 4},
+    //            {6, 5, 7},
+    //            {4, 1, 8, 3}};
+    // cout << "Min path R " << minimumTotalR(tri) << endl;
+    // cout << "Min path M " << minimumTotalM(tri) << endl;
+    // cout << "Min path T " << minimumTotalT(tri) << endl;
+    // cout << "Min path S " << minimumTotalSO(tri) << endl;
+    VVI tri = {{2, 1, 3},
+               {6, 5, 4},
+               {7, 8, 9}};
+    cout << "Min path R " << minFallingPathSumR(tri) << endl;
+    cout << "Min path M " << minFallingPathSumM(tri) << endl;
+    cout << "Min path T " << minFallingPathSumT(tri) << endl;
+    cout << "Min path S " << minFallingPathSumSO(tri) << endl;
 
     //  End code here-------->>
 
