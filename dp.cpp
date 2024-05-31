@@ -142,6 +142,7 @@ For Recursion:
 i.Try all possible ways like count or best way then you're trying to apply recursion
 For Memoization:
 you'll see recursaion having overlaping problem then you can use memo...
+
 6️⃣ Shortcut trick for 1D DP or RECURSION******
 ---->
 i. Try to represent the problem in terms of index
@@ -149,6 +150,7 @@ ii. Do all possible stuffs on that index according to the problem statement, Wri
 iii. If the qs says count all the ways ->sum up all the stuffs
     if says minimum-> take mini(all stuffs)
     if maxi-> take max(all stuffs)
+
 7️⃣ Shortcut trick for 2D DP or RECURSION******
 i. Express everything in terms of (row,col)
 ii. Do all possible stuffs on that (row,col) according to the problem statement, Write base case and check for boundry
@@ -156,7 +158,10 @@ iii. If the qs says count all the ways ->sum up all the stuffs
     if says minimum-> take mini(all stuffs)
     if maxi-> take max(all stuffs)
 ---->
-8️⃣Why we're not using Greedy Algorithm?
+
+8️⃣Fixed starting point to variable ending point(at any last row) :  we generally tend to write the recursion from starting point
+
+9️⃣Why we're not using Greedy Algorithm?
 ------>>Cz of Uniformity greedy always choose minimum elem but here sometimes we dont need minimum elem.
 Example given in Frog Jump redirect to 413 line
 */
@@ -1517,7 +1522,7 @@ ANS : Given a triangle array, return the minimum path sum from top to bottom.
 For each step, you may move to an adjacent number of the row below. More formally, if you are on index i on the current row, you may move to either index i or index i + 1 on the next row.
 Input :   || Output :
 */
-// Bruteforce ----------->
+// Bruteforce ------Recursion----->
 // TC :O(2^n)
 // SC :O(n) Recursion stack space
 int minimumTotalRecr(int i, int j, VVI &tri)
@@ -1641,7 +1646,7 @@ ANS : Given an n x n array of integers matrix, return the minimum sum of any fal
 A falling path starts at any element in the first row and chooses the element in the next row that is either directly below or diagonally left/right. Specifically, the next element from position (row, col) will be (row + 1, col - 1), (row + 1, col), or (row + 1, col + 1).
 Input :   || Output :
 */
-// Bruteforce ----------->
+// Bruteforce ------Recursion----->
 // TC : O(3^n)~ exponential in nature SC : O(N)
 int minFallingPathSumRecr(int i, int j, VVI &mat)
 {
@@ -1827,25 +1832,237 @@ int minFallingPathSumSO(vector<vector<int>> &matrix)
     return maxi;
 }
 /*
-13.
-ANS :
+13.  Ninja and his friends 3D DP(Cherry Pickup)
+ANS : We are given an ‘N*M’ matrix. Every cell of the matrix has some chocolates on it, mat[i][j] gives us the number of chocolates. We have two friends ‘Alice’ and ‘Bob’. initially, Alice is standing on the cell(0,0) and Bob is standing on the cell(0, M-1). Both of them can move only to the cells below them in these three directions: to the bottom cell (↓), to the bottom-right cell(↘), or to the bottom-left cell(↙).
+
+When Alica and Bob visit a cell, they take all the chocolates from that cell with them. It can happen that they visit the same cell, in that case, the chocolates need to be considered only once.
+
+They cannot go out of the boundary of the given matrix, we need to return the maximum number of chocolates that Bob and Alice can together collect.
 Input :   || Output :
 */
-// Bruteforce ----------->
-// TC :
-// SC :
+// Bruteforce ------Recursion----->
+
+/*
+Intuition : After read the question we've to write 2 recursion call  for bob and alice then sum it up then you've to trace the path then you've to subtract the path if there is anything common so it will longer time,
+so we can merge it and make it single.
+Here're rules -
+i. Express everthing in terms of Bob(i1,j1) & Alice(i2,j2)
+ii. Explore all the paths
+iii. Return maximum sum
+Observed : Fixed starting point to variable ending point(at any last row) :  we generally tend to write the recursion from starting point
+Observed : We can ommit any of i1,i2 cz bob & alice only go to his 2nd row in same time
+*/
+// TC :O(3^nx3^n)~exponential
+// SC :O(n)
+int chocoPickRecr(int i, int j1, int j2, VVI &grid)
+{
+    int n = SZ(grid);
+    int m = SZ(grid[0]);
+    // First Base case boundry check:
+    if (j1 < 0 || j1 >= m || j2 < 0 || j2 >= m)
+        return -1e8;
+    // Second base case :
+    //  When both reached last row
+    if (i == n - 1)
+    {
+        if (j1 == j2)
+            return grid[i][j1]; // Both reached in a same col
+        else
+            return grid[i][j1] + grid[i][j2]; // Diffrent
+    }
+    // Explore all the path bob and alice go together
+    // If one movement of bob, alice have all remain movement
+    int maxi = INT_MIN;
+    // Try all possible moves (up, left, right) for both positions (j1, j2)
+    for (int dj1 = -1; dj1 <= 1; dj1++)
+    {
+        for (int dj2 = -1; dj2 <= 1; dj2++)
+        {
+            if (j1 == j2)
+                maxi = max(maxi, grid[i][j1] + chocoPickRecr(i + 1, j1 + dj1, j2 + dj2, grid)); // Both in same col
+            else
+                maxi = max(maxi, grid[i][j1] + grid[i][j2] + chocoPickRecr(i + 1, j1 + dj1, j2 + dj2, grid)); // Diffrent
+        }
+    }
+    return maxi;
+}
+int maximumChocolatesR(vector<vector<int>> &grid)
+{
+    int m = SZ(grid[0]);
+    return chocoPickRecr(0, 0, m - 1, grid); // bob and alice going simultaneously bellow his row
+}
 // Better ------Memoization----->
-
-// TC :
-// SC :
+// Time Complexity: O(N*M*M) * 9
+// Reason: At max, there will be N*M*M calls of recursion to solve a new problem and in every call, two nested loops together run for 9 times.
+// Space Complexity: O(N) + O(N*M*M)
+// Reason: We are using a recursion stack space: O(N), where N is the path length and an external DP Array of size ‘N*M*M’.
+int chocoPickMemo(int i, int j1, int j2, VVI &grid, vector<vector<vector<int>>> &dp)
+{
+    int n = SZ(grid);
+    int m = SZ(grid[0]);
+    // First Base case boundry check:
+    if (j1 < 0 || j1 >= m || j2 < 0 || j2 >= m)
+        return -1e8;
+    // Memo base case :
+    if (dp[i][j1][j2] != -1)
+        return dp[i][j1][j2];
+    // Second base case :
+    //  When both reached last row
+    if (i == n - 1)
+    {
+        if (j1 == j2)
+            return grid[i][j1]; // Both reached in a same col
+        else
+            return grid[i][j1] + grid[i][j2]; // Diffrent
+    }
+    // Explore all the path bob and alice go together
+    // If one movement of bob, alice have all remain movement
+    int maxi = INT_MIN;
+    // Try all possible moves (up, left, right) for both positions (j1, j2)
+    for (int dj1 = -1; dj1 <= 1; dj1++)
+    {
+        for (int dj2 = -1; dj2 <= 1; dj2++)
+        {
+            if (j1 == j2)
+                maxi = max(maxi, grid[i][j1] + chocoPickMemo(i + 1, j1 + dj1, j2 + dj2, grid, dp)); // Both in same col
+            else
+                maxi = max(maxi, grid[i][j1] + grid[i][j2] + chocoPickMemo(i + 1, j1 + dj1, j2 + dj2, grid, dp)); // Diffrent
+        }
+    }
+    return dp[i][j1][j2] = maxi;
+}
+int maximumChocolatesM(vector<vector<int>> &grid)
+{
+    int n = SZ(grid);
+    int m = SZ(grid[0]);
+    vector<vector<vector<int>>> dp(n, vector<vector<int>>(m, vector<int>(m, -1)));
+    return chocoPickMemo(0, 0, m - 1, grid, dp); // bob and alice going simultaneously bellow his row
+}
 // Optimal -----Tabulation----->
+// Time Complexity: O(N*M*M)*9
+// Reason: The outer nested loops run for (N*M*M) times and the inner two nested loops run for 9 times.
+// Space Complexity: O(N*M*M)
+// Reason: We are using an external array of size ‘N*M*M’. The stack space will be eliminated.
+int maximumChocolatesT(vector<vector<int>> &grid)
+{
+    int n = SZ(grid);
+    int m = SZ(grid[0]);
+    vector<vector<vector<int>>> dp(n, vector<vector<int>>(m, vector<int>(m, 0)));
+    // In the recursive code, our base condition is when we reach the last row, therefore in our dp array, we will also initialize dp[n - 1][][], i.e(the last plane of 3D Array) as the base condition.Dp[n - 1][j1][j2] means Alice is at(n - 1, j1) and Bob is at(n - 1, j2).As this is the last row, its value will be equal to mat[i][j1], if (j1 == j2) and mat[i][j1] + mat[i][j2] otherwise.
+    // Base case :
+    // Initialize the DP array for the last row
+    for (int j1 = 0; j1 < m; j1++)
+    {
+        for (int j2 = 0; j2 < m; j2++)
+        {
+            if (j1 == j2)
+                dp[n - 1][j1][j2] = grid[n - 1][j1];
+            else
+                dp[n - 1][j1][j2] = grid[n - 1][j1] + grid[n - 1][j2];
+        }
+    }
+    // Outer nested loops for traversing the DP array from the second-to-last row up to the first row
+    for (int i = n - 2; i >= 0; i--)
+    {
+        for (int j1 = 0; j1 < m; j1++)
+        {
+            for (int j2 = 0; j2 < m; j2++)
+            {
+                int maxi = INT_MIN;
 
-// TC :
-// SC :
+                // Inner nested loops to try out 9 options (diagonal moves)
+                for (int di = -1; di <= 1; di++)
+                {
+                    for (int dj = -1; dj <= 1; dj++)
+                    {
+                        int ans;
+
+                        if (j1 == j2)
+                            ans = grid[i][j1];
+                        else
+                            ans = grid[i][j1] + grid[i][j2];
+
+                        // Check if the move is valid (within the grid boundaries)
+                        if ((j1 + di < 0 || j1 + di >= m) || (j2 + dj < 0 || j2 + dj >= m))
+                            ans += -1e9; // A very large negative value to represent an invalid move
+                        else
+                            ans += dp[i + 1][j1 + di][j2 + dj]; // Include the DP result from the next row
+
+                        maxi = max(ans, maxi); // Update the maximum result
+                    }
+                }
+                dp[i][j1][j2] = maxi; // Store the maximum result for this state in the DP array
+            }
+        }
+    }
+
+    // The maximum chocolates that can be collected is stored at the top-left corner of the DP array
+    return dp[0][0][m - 1];
+}
 // Most Optimal -----Space Optimization----->
-// TC :
-// SC :
+// Time Complexity: O(N*M*M)*9
+// Reason: The outer nested loops run for (N*M*M) times and the inner two nested loops run for 9 times.
+// Space Complexity: O(M*M)
+// Reason: We are using an external array of size ‘M*M’.
+int maximumChocolatesSO(vector<vector<int>> &grid)
+{
+    int n = SZ(grid);
+    int m = SZ(grid[0]);
+    // Create two 2D vectors 'front' and 'cur' to store computed results
+    vector<vector<int>> front(m, vector<int>(m, 0));
+    vector<vector<int>> cur(m, vector<int>(m, 0));
 
+    // Initialize 'front' for the last row
+    for (int j1 = 0; j1 < m; j1++)
+    {
+        for (int j2 = 0; j2 < m; j2++)
+        {
+            if (j1 == j2)
+                front[j1][j2] = grid[n - 1][j1];
+            else
+                front[j1][j2] = grid[n - 1][j1] + grid[n - 1][j2];
+        }
+    }
+
+    // Outer nested loops for traversing the DP array from the second-to-last row up to the first row
+    for (int i = n - 2; i >= 0; i--)
+    {
+        for (int j1 = 0; j1 < m; j1++)
+        {
+            for (int j2 = 0; j2 < m; j2++)
+            {
+                int maxi = INT_MIN;
+
+                // Inner nested loops to try out 9 options (diagonal moves)
+                for (int di = -1; di <= 1; di++)
+                {
+                    for (int dj = -1; dj <= 1; dj++)
+                    {
+                        int ans;
+
+                        if (j1 == j2)
+                            ans = grid[i][j1];
+                        else
+                            ans = grid[i][j1] + grid[i][j2];
+
+                        // Check if the move is valid (within the grid boundaries)
+                        if ((j1 + di < 0 || j1 + di >= m) || (j2 + dj < 0 || j2 + dj >= m))
+                            ans += -1e9; // A very large negative value to represent an invalid move
+                        else
+                            ans += front[j1 + di][j2 + dj]; // Include the value from the 'front' array
+
+                        maxi = max(ans, maxi); // Update the maximum result
+                    }
+                }
+                cur[j1][j2] = maxi; // Store the maximum result for this state in the 'cur' array
+            }
+        }
+        front = cur; // Update 'front' with the values from 'cur' for the next iteration
+    }
+
+    // The maximum chocolates that can be collected is stored at the top-left corner of the 'front' array
+    return front[0][m - 1];
+}
 /*
 14.
 ANS :
@@ -1950,13 +2167,18 @@ int main()
     // cout << "Min path M " << minimumTotalM(tri) << endl;
     // cout << "Min path T " << minimumTotalT(tri) << endl;
     // cout << "Min path S " << minimumTotalSO(tri) << endl;
-    VVI tri = {{2, 1, 3},
-               {6, 5, 4},
-               {7, 8, 9}};
-    cout << "Min path R " << minFallingPathSumR(tri) << endl;
-    cout << "Min path M " << minFallingPathSumM(tri) << endl;
-    cout << "Min path T " << minFallingPathSumT(tri) << endl;
-    cout << "Min path S " << minFallingPathSumSO(tri) << endl;
+    // VVI tri = {{2, 1, 3},
+    //            {6, 5, 4},
+    //            {7, 8, 9}};
+    // cout << "Min path R " << minFallingPathSumR(tri) << endl;
+    // cout << "Min path M " << minFallingPathSumM(tri) << endl;
+    // cout << "Min path T " << minFallingPathSumT(tri) << endl;
+    // cout << "Min path S " << minFallingPathSumSO(tri) << endl;
+    VVI tri = {{3, 1, 1}, {2, 5, 1}, {1, 5, 5}, {2, 1, 1}};
+    cout << "Max choco R " << maximumChocolatesR(tri) << endl;
+    cout << "Max choco M " << maximumChocolatesM(tri) << endl;
+    cout << "Max choco T " << maximumChocolatesT(tri) << endl;
+    cout << "Max choco S " << maximumChocolatesSO(tri) << endl;
 
     //  End code here-------->>
 
