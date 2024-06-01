@@ -2063,20 +2063,49 @@ int maximumChocolatesSO(vector<vector<int>> &grid)
     // The maximum chocolates that can be collected is stored at the top-left corner of the 'front' array
     return front[0][m - 1];
 }
+
+/*##############################DP ON SUBSEQUENCES#################################*/
+
 /*
-14.
-ANS :
+14. Subset sum equal to target
+ANS : Given an array of non-negative integers, and a value sum, determine if there is a subset of the given set with sum equal to given sum.
 Input :   || Output :
 */
-// Bruteforce ----------->
-// TC :
-// SC :
+// Bruteforce ------Recursion----->
+// TC :O(2^n)
+// SC :O(ns)
+/*
+Intuition : We can do this using POWER SEt & RECURSION but here question says if there is one subsets return true thats why i am going to use Recursion
+So, we're tying pick and not-pick algo.
+Try In the entair array till the index (n-1) does there exist a target that is what the recursion tell you
+^Exclude the current element in the subsequence: We first try to find a subsequence without considering the current index element. For this, we will make a recursive call to f(ind-1,target).
+^Include the current element in the subsequence: We will try to find a subsequence by considering the current index as element as part of subsequence. As we have included arr[ind], the updated target which we need to find in the rest if the array will be target - arr[ind]. Therefore, we will call f(ind-1,target-arr[ind]).
+*/
+bool isSubsetSumRecr(int ind, VI &arr, int target)
+{
+    // Base Case :
+    if (target == 0)
+        return true; // If we found the target
+    if (ind == 0)
+        return (arr[ind] == target); // At index 0 if target==arr[0] return ? true :false
+    // Pick & not-pick
+    bool notPick = isSubsetSumRecr(ind - 1, arr, target);
+    bool pick = false;
+    if (target >= arr[ind])
+    { // target must be smaller than arr elem otherwise how can you sum up or compare same
+        pick = isSubsetSumRecr(ind - 1, arr, target - arr[ind]);
+    }
+    return notPick || pick; // If anyone return true just return true as ans
+}
+bool isSubsetSumR(vector<int> arr, int sum)
+{
+    int n = SZ(arr);
+    return isSubsetSumRecr(n - 1, arr, sum);
+}
 // Better ------Memoization----->
-
 // TC :
 // SC :
 // Optimal -----Tabulation----->
-
 // TC :
 // SC :
 // Most Optimal -----Space Optimization----->
@@ -2088,15 +2117,13 @@ Input :   || Output :
 ANS :
 Input :   || Output :
 */
-// Bruteforce ----------->
+// Bruteforce ------Recursion----->
 // TC :
 // SC :
 // Better ------Memoization----->
-
 // TC :
 // SC :
 // Optimal -----Tabulation----->
-
 // TC :
 // SC :
 // Most Optimal -----Space Optimization----->
@@ -2174,11 +2201,17 @@ int main()
     // cout << "Min path M " << minFallingPathSumM(tri) << endl;
     // cout << "Min path T " << minFallingPathSumT(tri) << endl;
     // cout << "Min path S " << minFallingPathSumSO(tri) << endl;
-    VVI tri = {{3, 1, 1}, {2, 5, 1}, {1, 5, 5}, {2, 1, 1}};
-    cout << "Max choco R " << maximumChocolatesR(tri) << endl;
-    cout << "Max choco M " << maximumChocolatesM(tri) << endl;
-    cout << "Max choco T " << maximumChocolatesT(tri) << endl;
-    cout << "Max choco S " << maximumChocolatesSO(tri) << endl;
+    // VVI tri = {{3, 1, 1}, {2, 5, 1}, {1, 5, 5}, {2, 1, 1}};
+    // cout << "Max choco R " << maximumChocolatesR(tri) << endl;
+    // cout << "Max choco M " << maximumChocolatesM(tri) << endl;
+    // cout << "Max choco T " << maximumChocolatesT(tri) << endl;
+    // cout << "Max choco S " << maximumChocolatesSO(tri) << endl;
+
+    VI tri = {3, 34, 4, 12, 5, 2};
+    cout << "Sum R " << isSubsetSumR(tri, 9) << endl;
+    cout << "Sum M " << isSubsetSumR(tri, 9) << endl;
+    cout << "Sum T " << isSubsetSumR(tri, 9) << endl;
+    cout << "Sum S " << isSubsetSumR(tri, 9) << endl;
 
     //  End code here-------->>
 

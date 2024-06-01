@@ -1,4 +1,4 @@
-Max choco R 24
-Max choco M 24
-Max choco T 24
-Max choco S 24
+Sum R 0
+Sum M 1
+Sum T 1
+Sum S 1
