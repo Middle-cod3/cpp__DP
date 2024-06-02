@@ -2103,14 +2103,144 @@ bool isSubsetSumR(vector<int> arr, int sum)
     return isSubsetSumRecr(n - 1, arr, sum);
 }
 // Better ------Memoization----->
-// TC :
-// SC :
+// Time Complexity: O(N*K)
+// Reason: There are N*K states therefore at max ‘N*K’ new problems will be solved.
+// Space Complexity: O(N*K) + O(N)
+// Reason: We are using a recursion stack space(O(N)) and a 2D array ( O(N*K)).
+bool isSubsetSumMemo(int ind, int target, VI &arr, VVI &dp)
+{
+    // If the target sum is 0, we have found a subset
+    if (target == 0)
+        return true;
+
+    // If we have reached the first element in 'arr'
+    if (ind == 0)
+        return arr[0] == target;
+
+    // If the result for this subproblem has already been computed, return it
+    if (dp[ind][target] != -1)
+        return dp[ind][target];
+
+    // Try not taking the current element into the subset
+    bool notTaken = isSubsetSumMemo(ind - 1, target, arr, dp);
+
+    // Try taking the current element into the subset if it doesn't exceed the target
+    bool taken = false;
+    if (arr[ind] <= target)
+        taken = isSubsetSumMemo(ind - 1, target - arr[ind], arr, dp);
+
+    // Store the result in the dp array to avoid recomputation
+    return dp[ind][target] = notTaken || taken;
+}
+
+bool isSubsetSumM(vector<int> arr, int sum)
+{
+    int n = SZ(arr);
+    VVI dp(n, VI(sum + 1, -1)); // dp array of size [n][k+1]. The size of the input array is ‘n’, so the index will always lie between ‘0’ and ‘n-1’. The target can take any value between ‘0’ and ‘k’. Therefore we take the dp array as dp[n][k+1]
+    return isSubsetSumMemo(n - 1, sum, arr, dp);
+}
 // Optimal -----Tabulation----->
-// TC :
-// SC :
+// Time Complexity: O(N*K)
+// Reason: There are two nested loops
+// Space Complexity: O(N*K)
+// Reason: We are using an external array of size ‘N*K’. Stack Space is eliminated.
+bool isSubsetSumT(vector<int> arr, int k)
+{
+    int n = SZ(arr);
+    // Initialize a 2D DP array with dimensions (n x k+1) to store subproblem results
+    vector<vector<bool>> dp(n, vector<bool>(k + 1, false));
+
+    // Base case: If the target sum is 0, we can always achieve it by taking no elements
+    for (int i = 0; i < n; i++)
+    {
+        dp[i][0] = true;
+    }
+
+    // Base case: If the first element of 'arr' is less than or equal to 'k', set dp[0][arr[0]] to true
+    if (arr[0] <= k)
+    {
+        dp[0][arr[0]] = true;
+    }
+
+    // Fill the DP array iteratively
+    for (int ind = 1; ind < n; ind++)
+    {
+        for (int target = 1; target <= k; target++)
+        {
+            // If we don't take the current element, the result is the same as the previous row
+            bool notTaken = dp[ind - 1][target];
+
+            // If we take the current element, subtract its value from the target and check the previous row
+            bool taken = false;
+            if (arr[ind] <= target)
+            {
+                taken = dp[ind - 1][target - arr[ind]];
+            }
+
+            // Store the result in the DP array for the current subproblem
+            dp[ind][target] = notTaken || taken;
+        }
+    }
+
+    // The final result is stored in dp[n-1][k]
+    return dp[n - 1][k];
+}
 // Most Optimal -----Space Optimization----->
 // TC :
 // SC :
+/*
+Intuition :
+We see that to calculate a value of a cell of the dp array, we need only the previous row values (say prev). So, we don’t need to store an entire array. Hence we can space optimize it.
+Note: Whenever we create a new row ( say cur), we need to explicitly set its first element is true according to our base condition.
+*/
+bool isSubsetSumSO(vector<int> arr, int k)
+{
+    int n = SZ(arr);
+
+    // Initialize a vector 'prev' to store the previous row of the DP table
+    vector<bool> prev(k + 1, false);
+
+    // Base case: If the target sum is 0, we can always achieve it by taking no elements
+    prev[0] = true;
+
+    // Base case: If the first element of 'arr' is less than or equal to 'k', set prev[arr[0]] to true
+    if (arr[0] <= k)
+    {
+        prev[arr[0]] = true;
+    }
+
+    // Iterate through the elements of 'arr' and update the DP table
+    for (int ind = 1; ind < n; ind++)
+    {
+        // Initialize a new row 'cur' to store the current state of the DP table
+        vector<bool> cur(k + 1, false);
+
+        // Base case: If the target sum is 0, we can achieve it by taking no elements
+        cur[0] = true;
+
+        for (int target = 1; target <= k; target++)
+        {
+            // If we don't take the current element, the result is the same as the previous row
+            bool notTaken = prev[target];
+
+            // If we take the current element, subtract its value from the target and check the previous row
+            bool taken = false;
+            if (arr[ind] <= target)
+            {
+                taken = prev[target - arr[ind]];
+            }
+
+            // Store the result in the current DP table row for the current subproblem
+            cur[target] = notTaken || taken;
+        }
+
+        // Update 'prev' with the current row 'cur' for the next iteration
+        prev = cur;
+    }
+
+    // The final result is stored in prev[k]
+    return prev[k];
+}
 
 /*
 15.
@@ -2209,9 +2339,9 @@ int main()
 
     VI tri = {3, 34, 4, 12, 5, 2};
     cout << "Sum R " << isSubsetSumR(tri, 9) << endl;
-    cout << "Sum M " << isSubsetSumR(tri, 9) << endl;
-    cout << "Sum T " << isSubsetSumR(tri, 9) << endl;
-    cout << "Sum S " << isSubsetSumR(tri, 9) << endl;
+    cout << "Sum M " << isSubsetSumM(tri, 9) << endl;
+    cout << "Sum T " << isSubsetSumT(tri, 9) << endl;
+    cout << "Sum S " << isSubsetSumSO(tri, 9) << endl;
 
     //  End code here-------->>
 
