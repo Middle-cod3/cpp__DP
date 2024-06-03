@@ -2,3 +2,5 @@ Sum R 1
 Sum M 1
 Sum T 1
 Sum S 1
+Can partition 1
+Can partition By Bit 1

@@ -2243,9 +2243,16 @@ bool isSubsetSumSO(vector<int> arr, int k)
 }
 
 /*
-15.
-ANS :
+15. Partition Equal Subset Sum
+ANS : Given an integer array nums, return true if you can partition the array into two subsets such that the sum of the elements in both subsets is equal or false otherwise.
 Input :   || Output :
+*/
+/*
+Intuition : If S1==S2==S/2 S=Total Sum
+If sum is odd then division is not possible
+I'm looking for a subset with sum S/2
+>> If you make the total sum of array(6 elems) and its gives you 20 and there are 3elem's sum is 10 then remaiing elems are bound to give you the remaining sum which is S-S/2
+So, I need to check if i get one subset with sum of S/2
 */
 // Bruteforce ------Recursion----->
 // TC :
@@ -2257,9 +2264,34 @@ Input :   || Output :
 // TC :
 // SC :
 // Most Optimal -----Space Optimization----->
-// TC :
-// SC :
-
+// Time Complexity: O(N*K) +O(N)
+// Reason: There are two nested loops that account for O(N*K) and at starting we are running a for loop to calculate totSum.
+// Space Complexity: O(K)
+// Reason: We are using an external array of size ‘K+1’ to store only one row.
+bool canPartition(vector<int> &nums)
+{
+    int totalSum = 0;
+    int n = SZ(nums);
+    FOR(i, n)
+    totalSum += nums[i];
+    if (totalSum % 2)
+        return false; // If total sum is a odd number then we can't devide into 2 halfs
+    int target = totalSum / 2;
+    return isSubsetSumSO(nums, target);
+}
+// Most Most Optimal -----Using Bitset----->
+// TC :O(N) Dominated by the iteration through the array
+// SC :O(1) For the bitset and sum, ignoring the input array itself
+bool canPartitionBit(vector<int> &nums)
+{
+    int sum = accumulate(nums.begin(), nums.end(), 0);
+    if (sum & 1)
+        return 0;
+    bitset<10000> bits(1);
+    for (int i : nums)
+        bits |= bits << i;
+    return bits[sum >> 1];
+}
 // ================================MAIN START=================================>>
 int main()
 {
@@ -2337,11 +2369,13 @@ int main()
     // cout << "Max choco T " << maximumChocolatesT(tri) << endl;
     // cout << "Max choco S " << maximumChocolatesSO(tri) << endl;
 
-    VI tri = {3, 34, 4, 12, 5, 2};
+    VI tri = {2, 3, 3, 3, 4, 5};
     cout << "Sum R " << isSubsetSumR(tri, 9) << endl;
     cout << "Sum M " << isSubsetSumM(tri, 9) << endl;
     cout << "Sum T " << isSubsetSumT(tri, 9) << endl;
     cout << "Sum S " << isSubsetSumSO(tri, 9) << endl;
+    cout << "Can partition " << canPartition(tri) << endl;
+    cout << "Can partition By Bit " << canPartitionBit(tri) << endl;
 
     //  End code here-------->>
 
