@@ -1,6 +1,4 @@
-Sum R 1
-Sum M 1
-Sum T 1
-Sum S 1
-Can partition 1
-Can partition By Bit 1
+Find ways R 3
+Find ways M 3
+Find ways T 3
+Find ways S 3

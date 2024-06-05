@@ -544,7 +544,7 @@ From stone 'i', it is possible to reach stones 'i'+1, ‘i’+2… ‘i’+'k' ,
 Return the minimum possible total cost incurred in reaching the stone ‘n’.
 Input :   || Output :
 */
-// Bruteforce ----------->
+// Bruteforce ------Recursion----->
 // TC : O(n * k), where n is the number of steps and k is the maximum number of steps backward.
 // SC : Since the recursion depth can be at most n (the number of steps), the space complexity is O(n).
 int minimizeCostRecr(int ind, int k, vector<int> &h)
@@ -655,7 +655,7 @@ You are a professional robber planning to rob houses along a street. Each house 
 Given an integer array nums representing the amount of money of each house, return the maximum amount of money you can rob tonight without alerting the police.
 Input :  [1,2,4] || Output : pick 1+4=5
 */
-// Bruteforce ----------->
+// Bruteforce ------Recursion----->
 // TC : O(2^n)
 // SC :
 // Try out all possible subsequences with the given condition which is pick the one with the minimum sum
@@ -789,7 +789,7 @@ ANS : A thief needs to rob money in a street. The houses in the street are arran
 Given an array of integers “Arr'' which represents money at each house, we need to return the maximum amount of money that the thief can rob without alerting the police.
 Input :   || Output :
 */
-// Bruteforce ----------->
+// Bruteforce ------Recursion----->
 // TC :
 // SC :
 // Better ------Memoization----->
@@ -2292,6 +2292,671 @@ bool canPartitionBit(vector<int> &nums)
         bits |= bits << i;
     return bits[sum >> 1];
 }
+
+/*
+16. Partition Array Into Two Arrays to Minimize Sum Difference
+ANS : You are given an integer array nums of 2 * n integers. You need to partition nums into two arrays of length n to minimize the absolute difference of the sums of the arrays. To partition nums, put each element of nums into one of the two arrays.
+Return the minimum possible absolute difference.
+Input :   || Output :
+*/
+// Bruteforce ------Recursion----->
+// TC :
+// SC :
+// Better -----Memoization------>
+// Time Complexity: O(N*totSum) +O(N) +O(N)
+// Reason: There are two nested loops that account for O(N*totSum), at starting we are running a for loop to calculate totSum and at last a for loop to traverse the last row.
+// Space Complexity: O(N*totSum) + O(N)
+// Reason: We are using an external array of size ‘N * totSum’ and a stack space of O(N).
+bool subsetSumUtilMemo(int ind, int target, vector<int> &arr, vector<vector<int>> &dp)
+{
+    // Base case: If the target sum is 0, return true
+    if (target == 0)
+        return dp[ind][target] = true;
+
+    // Base case: If we have considered all elements and the target is still not 0, return false
+    if (ind == 0)
+        return dp[ind][target] = (arr[0] == target);
+
+    // If the result for this state is already calculated, return it
+    if (dp[ind][target] != -1)
+        return dp[ind][target];
+
+    // Recursive cases
+    // 1. Exclude the current element
+    bool notTaken = subsetSumUtilMemo(ind - 1, target, arr, dp);
+
+    // 2. Include the current element if it doesn't exceed the target
+    bool taken = false;
+    if (arr[ind] <= target)
+        taken = subsetSumUtilMemo(ind - 1, target - arr[ind], arr, dp);
+
+    // Store the result in the DP table and return
+    return dp[ind][target] = notTaken || taken;
+}
+int minSubsetSumDifferenceM(vector<int> &arr, int n)
+{
+    int totSum = 0;
+
+    // Calculate the total sum of the array
+    for (int i = 0; i < n; i++)
+    {
+        totSum += arr[i];
+    }
+
+    // Initialize a DP table to store the results of the subset sum problem
+    vector<vector<int>> dp(n, vector<int>(totSum + 1, -1));
+
+    // Calculate the subset sum for each possible sum from 0 to the total sum
+    for (int i = 0; i <= totSum; i++)
+    {
+        bool dummy = subsetSumUtilMemo(n - 1, i, arr, dp);
+    }
+
+    int mini = 1e9;
+    for (int i = 0; i <= totSum; i++)
+    {
+        if (dp[n - 1][i] == true)
+        {
+            int diff = abs(i - (totSum - i));
+            mini = min(mini, diff);
+        }
+    }
+    return mini;
+}
+// Optimal -----Tabulation----->
+// Time Complexity: O(N*totSum) +O(N) +O(N)
+// Reason: There are two nested loops that account for O(N*totSum), at starting we are running a for loop to calculate totSum, and at last a for loop to traverse the last row.
+// Space Complexity: O(N*totSum)
+// Reason: We are using an external array of size ‘N * totSum’. Stack Space is eliminated.
+int minSubsetSumDifferenceT(vector<int> &arr, int n)
+{
+    int totSum = 0;
+
+    // Calculate the total sum of the array
+    for (int i = 0; i < n; i++)
+    {
+        totSum += arr[i];
+    }
+
+    // Initialize a DP table to store the results of the subset sum problem
+    vector<vector<bool>> dp(n, vector<bool>(totSum + 1, false));
+
+    // Base case: If no elements are selected (sum is 0), it's a valid subset
+    for (int i = 0; i < n; i++)
+    {
+        dp[i][0] = true;
+    }
+
+    // Initialize the first row based on the first element of the array
+    if (arr[0] <= totSum)
+        dp[0][totSum] = true;
+
+    // Fill in the DP table using a bottom-up approach
+    for (int ind = 1; ind < n; ind++)
+    {
+        for (int target = 1; target <= totSum; target++)
+        {
+            // Exclude the current element
+            bool notTaken = dp[ind - 1][target];
+
+            // Include the current element if it doesn't exceed the target
+            bool taken = false;
+            if (arr[ind] <= target)
+                taken = dp[ind - 1][target - arr[ind]];
+
+            dp[ind][target] = notTaken || taken;
+        }
+    }
+
+    int mini = 1e9;
+    for (int i = 0; i <= totSum; i++)
+    {
+        if (dp[n - 1][i] == true)
+        {
+            // Calculate the absolute difference between two subset sums
+            int diff = abs(i - (totSum - i));
+            mini = min(mini, diff);
+        }
+    }
+    return mini;
+}
+// Most Optimal -----Space Optimization----->
+// Time Complexity: O(N*totSum) +O(N) +O(N)
+// Reason: There are two nested loops that account for O(N*totSum), at starting we are running a for loop to calculate totSum and at last a for loop to traverse the last row.
+// Space Complexity: O(totSum)
+// Reason: We are using an external array of size ‘totSum+1’ to store only one row.
+int minSubsetSumDifferenceSO(vector<int> &arr, int n)
+{
+    int totSum = 0;
+
+    // Calculate the total sum of the array
+    for (int i = 0; i < n; i++)
+    {
+        totSum += arr[i];
+    }
+
+    // Initialize a boolean vector 'prev' to represent the previous row of the DP table
+    vector<bool> prev(totSum + 1, false);
+
+    // Base case: If no elements are selected (sum is 0), it's a valid subset
+    prev[0] = true;
+
+    // Initialize the first row based on the first element of the array
+    if (arr[0] <= totSum)
+        prev[arr[0]] = true;
+
+    // Fill in the DP table using a bottom-up approach
+    for (int ind = 1; ind < n; ind++)
+    {
+        // Create a boolean vector 'cur' to represent the current row of the DP table
+        vector<bool> cur(totSum + 1, false);
+        cur[0] = true;
+
+        for (int target = 1; target <= totSum; target++)
+        {
+            // Exclude the current element
+            bool notTaken = prev[target];
+
+            // Include the current element if it doesn't exceed the target
+            bool taken = false;
+            if (arr[ind] <= target)
+                taken = prev[target - arr[ind]];
+
+            cur[target] = notTaken || taken;
+        }
+
+        // Set 'cur' as the 'prev' for the next iteration
+        prev = cur;
+    }
+
+    int mini = 1e9;
+    for (int i = 0; i <= totSum; i++)
+    {
+        if (prev[i] == true)
+        {
+            // Calculate the absolute difference between two subset sums
+            int diff = abs(i - (totSum - i));
+            mini = min(mini, diff);
+        }
+    }
+    return mini;
+}
+
+/*
+17. Count Subsets with Sum K
+ANS : You are given an array 'arr' of size 'n' containing positive integers and a target sum 'k'.
+Find the number of ways of selecting the elements from the array such that the sum of chosen elements is equal to the target 'k'.
+Since the number of ways can be very large, print it modulo 10 ^ 9 + 7.
+
+Input :   || Output :
+*/
+// Bruteforce ------Recursion----->
+// Time Complexity: O(N*K)
+// Reason: There are N*K states therefore at max ‘N*K’ new problems will be solved.
+// Space Complexity: O(N)
+// Reason: We are using a recursion stack space(O(N))
+int findWaysRecr(int ind, int target, VI &arr)
+{
+    if (target == 0)
+        return 1;
+    if (ind == 0)
+        return arr[ind] == target;
+    int notPick = findWaysRecr(ind - 1, target, arr);
+    int pick = 0;
+    if (arr[ind] <= target)
+        pick = findWaysRecr(ind - 1, target - arr[ind], arr);
+    return (notPick + pick);
+}
+int findWaysR(vector<int> &arr, int k)
+{
+    int n = SZ(arr);
+    return findWaysRecr(n - 1, k, arr);
+}
+// Better -----Memoization------>
+// Time Complexity: O(N*K)
+// Reason: There are N*K states therefore at max ‘N*K’ new problems will be solved.
+// Space Complexity: O(N*K) + O(N)
+// Reason: We are using a recursion stack space(O(N)) and a 2D array ( O(N*K)).
+int findWaysMemo(int ind, int target, VI &arr, VVI &dp)
+{
+    if (target == 0)
+        return 1;
+    if (ind == 0)
+        return (arr[0] == target) ? 1 : 0;
+
+    if (dp[ind][target] != -1)
+        return dp[ind][target];
+    int notPick = findWaysMemo(ind - 1, target, arr, dp);
+    int pick = 0;
+    if (arr[ind] <= target)
+        pick = findWaysMemo(ind - 1, target - arr[ind], arr, dp);
+    return dp[ind][target] = (notPick + pick);
+}
+int findWaysM(vector<int> &arr, int k)
+{
+    int n = SZ(arr);
+    VVI dp(n, VI(k + 1, -1));
+    return findWaysMemo(n - 1, k, arr, dp);
+}
+// Optimal -----Tabulation----->
+// Time Complexity: O(N*K)
+// Reason: There are two nested loops
+// Space Complexity: O(N*K)
+// Reason: We are using an external array of size ‘N*K’. Stack Space is eliminated.
+int findWaysT(vector<int> &arr, int k)
+{
+    int n = SZ(arr);
+    VVI dp(n, VI(k + 1, 0));
+    // Base case: If the target sum is 0, there is one valid subset (the empty subset)
+    for (int i = 0; i < n; i++)
+    {
+        dp[i][0] = 1;
+    }
+
+    // Initialize the first row based on the first element of the array
+    if (arr[0] <= k)
+    {
+        dp[0][arr[0]] = 1;
+    }
+
+    // Fill in the DP table using a bottom-up approach
+    for (int ind = 1; ind < n; ind++)
+    {
+        for (int target = 1; target <= k; target++)
+        {
+            // Exclude the current element
+            int notTaken = dp[ind - 1][target];
+
+            // Include the current element if it doesn't exceed the target
+            int taken = 0;
+            if (arr[ind] <= target)
+            {
+                taken = dp[ind - 1][target - arr[ind]];
+            }
+
+            // Update the DP table
+            dp[ind][target] = notTaken + taken;
+        }
+    }
+
+    // The final result is in the last cell of the DP table
+    return dp[n - 1][k];
+}
+// Most Optimal -----Space Optimization----->
+// Time Complexity: O(N*K)
+// Reason: There are two nested loops
+// Space Complexity: O(K)
+// Reason: We are using an external array of size ‘K+1’ to store only one row.
+int findWaysSO(vector<int> &num, int k)
+{
+    int n = num.size();
+
+    // Initialize a vector 'prev' to represent the previous row of the DP table
+    vector<int> prev(k + 1, 0);
+
+    // Base case: If the target sum is 0, there is one valid subset (the empty subset)
+    prev[0] = 1;
+
+    // Initialize the first row based on the first element of the array
+    if (num[0] <= k)
+    {
+        prev[num[0]] = 1;
+    }
+
+    // Fill in the DP table using a bottom-up approach
+    for (int ind = 1; ind < n; ind++)
+    {
+        // Create a vector 'cur' to represent the current row of the DP table
+        vector<int> cur(k + 1, 0);
+
+        cur[0] = 1;
+
+        for (int target = 1; target <= k; target++)
+        {
+            // Exclude the current element
+            int notTaken = prev[target];
+
+            // Include the current element if it doesn't exceed the target
+            int taken = 0;
+            if (num[ind] <= target)
+            {
+                taken = prev[target - num[ind]];
+            }
+
+            // Update the current row of the DP table
+            cur[target] = notTaken + taken;
+        }
+
+        // Set 'cur' as 'prev' for the next iteration
+        prev = cur;
+    }
+
+    // The final result is in the last cell of the 'prev' vector
+    return prev[k];
+}
+
+/*
+18.
+ANS :
+Input :   || Output :
+*/
+// Bruteforce ------Recursion----->
+// TC :
+// SC :
+// Better -----Memoization------>
+// TC :
+// SC :
+// Optimal -----Tabulation----->
+// TC :
+// SC :
+// Most Optimal -----Space Optimization----->
+// TC :
+// SC :
+
+/*
+19.
+ANS :
+Input :   || Output :
+*/
+// Bruteforce ------Recursion----->
+// TC :
+// SC :
+// Better -----Memoization------>
+// TC :
+// SC :
+// Optimal -----Tabulation----->
+// TC :
+// SC :
+// Most Optimal -----Space Optimization----->
+// TC :
+// SC :
+
+/*
+20.
+ANS :
+Input :   || Output :
+*/
+// Bruteforce ------Recursion----->
+// TC :
+// SC :
+// Better -----Memoization------>
+// TC :
+// SC :
+// Optimal -----Tabulation----->
+// TC :
+// SC :
+// Most Optimal -----Space Optimization----->
+// TC :
+// SC :
+/*
+21.
+ANS :
+Input :   || Output :
+*/
+// Bruteforce ------Recursion----->
+// TC :
+// SC :
+// Better -----Memoization------>
+// TC :
+// SC :
+// Optimal -----Tabulation----->
+// TC :
+// SC :
+// Most Optimal -----Space Optimization----->
+// TC :
+// SC :
+
+/*
+22.
+ANS :
+Input :   || Output :
+*/
+// Bruteforce ------Recursion----->
+// TC :
+// SC :
+// Better -----Memoization------>
+// TC :
+// SC :
+// Optimal -----Tabulation----->
+// TC :
+// SC :
+// Most Optimal -----Space Optimization----->
+// TC :
+// SC :
+
+/*
+23.
+ANS :
+Input :   || Output :
+*/
+// Bruteforce ------Recursion----->
+// TC :
+// SC :
+// Better -----Memoization------>
+// TC :
+// SC :
+// Optimal -----Tabulation----->
+// TC :
+// SC :
+// Most Optimal -----Space Optimization----->
+// TC :
+// SC :
+
+/*
+24.
+ANS :
+Input :   || Output :
+*/
+// Bruteforce ------Recursion----->
+// TC :
+// SC :
+// Better -----Memoization------>
+// TC :
+// SC :
+// Optimal -----Tabulation----->
+// TC :
+// SC :
+// Most Optimal -----Space Optimization----->
+// TC :
+// SC :
+
+/*
+25.
+ANS :
+Input :   || Output :
+*/
+// Bruteforce ------Recursion----->
+// TC :
+// SC :
+// Better -----Memoization------>
+// TC :
+// SC :
+// Optimal -----Tabulation----->
+// TC :
+// SC :
+// Most Optimal -----Space Optimization----->
+// TC :
+// SC :
+
+/*
+26.
+ANS :
+Input :   || Output :
+*/
+// Bruteforce ------Recursion----->
+// TC :
+// SC :
+// Better -----Memoization------>
+// TC :
+// SC :
+// Optimal -----Tabulation----->
+// TC :
+// SC :
+// Most Optimal -----Space Optimization----->
+// TC :
+// SC :
+
+/*
+27.
+ANS :
+Input :   || Output :
+*/
+// Bruteforce ------Recursion----->
+// TC :
+// SC :
+// Better -----Memoization------>
+// TC :
+// SC :
+// Optimal -----Tabulation----->
+// TC :
+// SC :
+// Most Optimal -----Space Optimization----->
+// TC :
+// SC :
+
+/*
+28.
+ANS :
+Input :   || Output :
+*/
+// Bruteforce ------Recursion----->
+// TC :
+// SC :
+// Better -----Memoization------>
+// TC :
+// SC :
+// Optimal -----Tabulation----->
+// TC :
+// SC :
+// Most Optimal -----Space Optimization----->
+// TC :
+// SC :
+
+/*
+29.
+ANS :
+Input :   || Output :
+*/
+// Bruteforce ------Recursion----->
+// TC :
+// SC :
+// Better -----Memoization------>
+// TC :
+// SC :
+// Optimal -----Tabulation----->
+// TC :
+// SC :
+// Most Optimal -----Space Optimization----->
+// TC :
+// SC :
+
+/*
+30.
+ANS :
+Input :   || Output :
+*/
+// Bruteforce ------Recursion----->
+// TC :
+// SC :
+// Better -----Memoization------>
+// TC :
+// SC :
+// Optimal -----Tabulation----->
+// TC :
+// SC :
+// Most Optimal -----Space Optimization----->
+// TC :
+// SC :
+/*
+31.
+ANS :
+Input :   || Output :
+*/
+// Bruteforce ------Recursion----->
+// TC :
+// SC :
+// Better -----Memoization------>
+// TC :
+// SC :
+// Optimal -----Tabulation----->
+// TC :
+// SC :
+// Most Optimal -----Space Optimization----->
+// TC :
+// SC :
+
+/*
+32.
+ANS :
+Input :   || Output :
+*/
+// Bruteforce ------Recursion----->
+// TC :
+// SC :
+// Better -----Memoization------>
+// TC :
+// SC :
+// Optimal -----Tabulation----->
+// TC :
+// SC :
+// Most Optimal -----Space Optimization----->
+// TC :
+// SC :
+
+/*
+33.
+ANS :
+Input :   || Output :
+*/
+// Bruteforce ------Recursion----->
+// TC :
+// SC :
+// Better -----Memoization------>
+// TC :
+// SC :
+// Optimal -----Tabulation----->
+// TC :
+// SC :
+// Most Optimal -----Space Optimization----->
+// TC :
+// SC :
+
+/*
+34.
+ANS :
+Input :   || Output :
+*/
+// Bruteforce ------Recursion----->
+// TC :
+// SC :
+// Better -----Memoization------>
+// TC :
+// SC :
+// Optimal -----Tabulation----->
+// TC :
+// SC :
+// Most Optimal -----Space Optimization----->
+// TC :
+// SC :
+
+/*
+35.
+ANS :
+Input :   || Output :
+*/
+// Bruteforce ------Recursion----->
+// TC :
+// SC :
+// Better -----Memoization------>
+// TC :
+// SC :
+// Optimal -----Tabulation----->
+// TC :
+// SC :
+// Most Optimal -----Space Optimization----->
+// TC :
+// SC :
+
 // ================================MAIN START=================================>>
 int main()
 {
@@ -2369,13 +3034,25 @@ int main()
     // cout << "Max choco T " << maximumChocolatesT(tri) << endl;
     // cout << "Max choco S " << maximumChocolatesSO(tri) << endl;
 
-    VI tri = {2, 3, 3, 3, 4, 5};
-    cout << "Sum R " << isSubsetSumR(tri, 9) << endl;
-    cout << "Sum M " << isSubsetSumM(tri, 9) << endl;
-    cout << "Sum T " << isSubsetSumT(tri, 9) << endl;
-    cout << "Sum S " << isSubsetSumSO(tri, 9) << endl;
-    cout << "Can partition " << canPartition(tri) << endl;
-    cout << "Can partition By Bit " << canPartitionBit(tri) << endl;
+    // VI tri = {2, 3, 3, 3, 4, 5};
+    // cout << "Sum R " << isSubsetSumR(tri, 9) << endl;
+    // cout << "Sum M " << isSubsetSumM(tri, 9) << endl;
+    // cout << "Sum T " << isSubsetSumT(tri, 9) << endl;
+    // cout << "Sum S " << isSubsetSumSO(tri, 9) << endl;
+    // cout << "Can partition " << canPartition(tri) << endl;
+    // cout << "Can partition By Bit " << canPartitionBit(tri) << endl;
+
+    // VI tri = {-36, 36};
+    // // cout << "Min subset R " << isSubsetSumR(tri) << endl;
+    // cout << "Min subset M " << minSubsetSumDifferenceM(tri, 2) << endl;
+    // cout << "Min subset T " << minSubsetSumDifferenceT(tri, 2) << endl;
+    // cout << "Min subset S " << minSubsetSumDifferenceSO(tri, 2) << endl;
+
+    VI tri = {1, 4, 4, 5};
+    cout << "Find ways R " << findWaysR(tri, 5) << endl;
+    cout << "Find ways M " << findWaysM(tri, 5) << endl;
+    cout << "Find ways T " << findWaysT(tri, 5) << endl;
+    cout << "Find ways S " << findWaysSO(tri, 5) << endl;
 
     //  End code here-------->>
 
