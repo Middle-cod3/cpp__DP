@@ -2811,23 +2811,143 @@ int countPartitionsSO(int d, vector<int> &arr)
 }
 
 /*
-19.
-ANS :
+19. 0 1 Knapsack
+ANS : A thief is robbing a store and can carry a maximal weight of W into his knapsack. There are N items and the ith item weighs wi and is of value vi. Considering the constraints of the maximum weight that a knapsack can carry, you have to find and return the maximum value that a thief can generate by stealing items.
 Input :   || Output :
 */
+// #### Its diffrent from the Greedy Algo cz here you can't break the items so thats why its called  0/1 Knapsack
+/*
+Intuition : Here we can't break items so we're not able to use Greedy Alfo instead we're using Recursion and Pick & notPick method
+Base Case :
+Boundry not Exceed
+Weight is not bigger than maxWeight
+*/
 // Bruteforce ------Recursion----->
-// TC :
-// SC :
+// Time Complexity: O(N*W)
+// Reason: There are N*W states therefore at max ‘N*W’ new problems will be solved.
+// Space Complexity:  O(N)
+// Reason: We are using a recursion stack space(O(N))
+int knapsackRecr(vector<int> wt, vector<int> val, int ind, int W)
+{
+    // Boundry not exceed && weight <=W
+    if (ind == 0)
+    {
+        if (wt[0] <= W)
+            return val[0];
+        return 0;
+    }
+    int notPick = knapsackRecr(wt, val, ind - 1, W);
+    int pick = (wt[ind] <= W) ? val[ind] + knapsackRecr(wt, val, ind - 1, W - wt[ind]) : INT_MIN;
+    return max(pick, notPick);
+}
+int knapsackR(vector<int> weight, vector<int> value, int maxWeight)
+{
+    int n = SZ(weight); // any one cz both have same elems
+    return knapsackRecr(weight, value, n - 1, maxWeight);
+}
 // Better -----Memoization------>
-// TC :
-// SC :
+// Time Complexity: O(N*W)
+// Reason: There are N*W states therefore at max ‘N*W’ new problems will be solved.
+// Space Complexity: O(N*W) + O(N)
+// Reason: We are using a recursion stack space(O(N)) and a 2D array ( O(N*W)).
+int knapsackMemo(vector<int> wt, vector<int> val, int ind, int W, VVI &dp)
+{
+    // Boundry not exceed && weight <=W
+    if (ind == 0)
+    {
+        if (wt[0] <= W)
+            return val[0];
+        return 0;
+    }
+    if (dp[ind][W] != -1)
+        return dp[ind][W];
+    int notPick = knapsackMemo(wt, val, ind - 1, W, dp);
+    int pick = (wt[ind] <= W) ? val[ind] + knapsackMemo(wt, val, ind - 1, W - wt[ind], dp) : INT_MIN;
+    return dp[ind][W] = max(pick, notPick);
+}
+int knapsackM(vector<int> weight, vector<int> value, int maxWeight)
+{
+    int n = SZ(weight); // any one cz both have same elems
+    VVI dp(n, VI(maxWeight + 1, -1));
+    return knapsackMemo(weight, value, n - 1, maxWeight, dp);
+}
 // Optimal -----Tabulation----->
-// TC :
-// SC :
-// Most Optimal -----Space Optimization----->
-// TC :
-// SC :
+// Time Complexity: O(N*W)
+// Reason: There are two nested loops
+// Space Complexity: O(N*W)
+// Reason: We are using an external array of size ‘N*W’. Stack Space is eliminated.
+int knapsackT(vector<int> wt, vector<int> val, int W)
+{
+    int n = SZ(wt); // any one cz both have same elems
+    VVI dp(n, VI(W + 1, 0));
+    // Base condition: Fill in the first row for the weight of the first item
+    for (int i = wt[0]; i <= W; i++)
+    {
+        dp[0][i] = val[0];
+    }
+    // Fill in the DP table using a bottom-up approach
+    for (int ind = 1; ind < n; ind++)
+    {
+        for (int cap = 0; cap <= W; cap++)
+        {
+            // Calculate the maximum value by either excluding the current item or including it
+            int notTaken = dp[ind - 1][cap];
+            int taken = INT_MIN;
 
+            // Check if the current item can be included without exceeding the knapsack's capacity
+            if (wt[ind] <= cap)
+            {
+                taken = val[ind] + dp[ind - 1][cap - wt[ind]];
+            }
+
+            // Update the DP table
+            dp[ind][cap] = max(notTaken, taken);
+        }
+    }
+
+    // The final result is in the last cell of the DP table
+    return dp[n - 1][W];
+}
+// Most Optimal -----Space Optimization----->
+// Time Complexity: O(N*W)
+// Reason: There are two nested loops.
+// Space Complexity: O(W)
+// Reason: We are using an external array of size ‘W+1’ to store only one row.
+int knapsackSO(vector<int> &wt, vector<int> &val, int W)
+{
+    int n = SZ(wt);
+    // Initialize a vector 'prev' to represent the previous row of the DP table
+    vector<int> prev(W + 1, 0);
+
+    // Base condition: Fill in 'prev' for the weight of the first item
+    for (int i = wt[0]; i <= W; i++)
+    {
+        prev[i] = val[0];
+    }
+
+    // Fill in the DP table using a bottom-up approach
+    for (int ind = 1; ind < n; ind++)
+    {
+        for (int cap = W; cap >= 0; cap--)
+        {
+            // Calculate the maximum value by either excluding the current item or including it
+            int notTaken = prev[cap];
+            int taken = INT_MIN;
+
+            // Check if the current item can be included without exceeding the knapsack's capacity
+            if (wt[ind] <= cap)
+            {
+                taken = val[ind] + prev[cap - wt[ind]];
+            }
+
+            // Update 'prev' for the current capacity
+            prev[cap] = max(notTaken, taken);
+        }
+    }
+
+    // The final result is in the last cell of the 'prev' vector
+    return prev[W];
+}
 /*
 20.
 ANS :
@@ -3211,11 +3331,18 @@ int main()
     // cout << "Find ways T " << findWaysT(tri, 5) << endl;
     // cout << "Find ways S " << findWaysSO(tri, 5) << endl;
 
-    VI tri = {1, 0, 8, 5, 1, 4};
-    cout << "Count Party R " << countPartitionsR(17, tri) << endl;
-    cout << "Count Party M " << countPartitionsM(17, tri) << endl;
-    cout << "Count Party T " << countPartitionsT(17, tri) << endl;
-    cout << "Count Party S " << countPartitionsT(17, tri) << endl;
+    // VI tri = {1, 0, 8, 5, 1, 4};
+    // cout << "Count Party R " << countPartitionsR(17, tri) << endl;
+    // cout << "Count Party M " << countPartitionsM(17, tri) << endl;
+    // cout << "Count Party T " << countPartitionsT(17, tri) << endl;
+    // cout << "Count Party S " << countPartitionsT(17, tri) << endl;
+
+    vector<int> wt = {1, 2, 4, 5};
+    vector<int> val = {5, 4, 8, 6};
+    cout << "0 1 Knapsack R " << knapsackR(wt, val, 5) << endl;
+    cout << "0 1 Knapsack M " << knapsackM(wt, val, 5) << endl;
+    cout << "0 1 Knapsack T " << knapsackT(wt, val, 5) << endl;
+    cout << "0 1 Knapsack S " << knapsackSO(wt, val, 5) << endl;
 
     //  End code here-------->>
 
