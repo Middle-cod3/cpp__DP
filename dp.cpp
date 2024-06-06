@@ -117,7 +117,7 @@ Tabulation: Known as the “bottom-up '' dynamic programming, usually the proble
 
 3️⃣ How we are going to learn?
 ----> First try using recursion then to optimize we use memoization then we'll use tabulation for space optimise
-
+***************REMEMBER PART************************
 4️⃣ How to convert Recursion ->Dynamic Programing?
 ----> 1. Declaring an array considering the size of the sub problems if n problem then its int dp[n+1]
       2. Storing the ans which is being computed for every sub problem
@@ -150,6 +150,9 @@ ii. Do all possible stuffs on that index according to the problem statement, Wri
 iii. If the qs says count all the ways ->sum up all the stuffs
     if says minimum-> take mini(all stuffs)
     if maxi-> take max(all stuffs)
+How to write Base Case ???????
+----->>Assume that you're starting a n-1 and you always look at the last index which is 0 and then you start thinking
+in terms of a single array containing a single elem and a possible target, Assume that array contain 6 and target is 7, so can you achive this target ?No,so you have to return something.
 
 7️⃣ Shortcut trick for 2D DP or RECURSION******
 i. Express everything in terms of (row,col)
@@ -164,6 +167,8 @@ iii. If the qs says count all the ways ->sum up all the stuffs
 9️⃣Why we're not using Greedy Algorithm?
 ------>>Cz of Uniformity greedy always choose minimum elem but here sometimes we dont need minimum elem.
 Example given in Frog Jump redirect to 413 line
+
+🔟 REMEMBER : Whenever there is a infinite supply of anything, multiple use such statement always when you consider Pick at the same index. It won't stand at a same index bcz we reducing the target
 */
 
 /*##############################1D DP#################################*/
@@ -2949,22 +2954,178 @@ int knapsackSO(vector<int> &wt, vector<int> &val, int W)
     return prev[W];
 }
 /*
-20.
-ANS :
+20. Minimum Coins
+ANS : You are given an integer array coins representing coins of different denominations and an integer amount representing a total amount of money.
+Return the fewest number of coins that you need to make up that amount. If that amount of money cannot be made up by any combination of the coins, return -1.
+You may assume that you have an infinite number of each kind of coin.
 Input :   || Output :
+Note : Here Greedy algo work in some test cases but it faild in some like if coins={9,6,5,1} amount=11
+Greedy will return 3 as [9,1,1] but expected ans is 2 [6,5]
 */
 // Bruteforce ------Recursion----->
-// TC :
-// SC :
+// Time Complexity: O(N*T)
+// Reason: There are N*T states therefore at max ‘N*T’ new problems will be solved.
+// Space Complexity:  O(N)
+// Reason: We are using a recursion stack space(O(N))
+/*
+Intuition : Is simple use pick and not pick method but in pick : Now here is the catch, as there is an unlimited supply of coins, we want to again form a solution with the same coin value. So we will not recursively call for f(ind-1, T-arr[ind]) rather we will stay at that index only and call for f(ind, T-arr[ind]) to find the answer.
+Note: We will consider the current coin only when its denomination value (arr[ind]) is less than or equal to the target T.
+Base case : The base case is triggered when the ind (index) is 0, meaning we are considering only the smallest denomination of coins.
+Logic:
+Check if the amount is exactly divisible by the coin at index 0 (coins[0]).
+If true, return the quotient (amount / coins[0]) as the minimum number of coins needed.
+If false, return INT_MAX to indicate that it's not possible to form the amount using only this coin.
+Purpose: This ensures that when the recursive function reaches the smallest denomination, it can determine if the remaining amount can be exactly formed using that denomination alone.
+*/
+
+/*
+REMEMBER : Whenever there is a infinite supply of anything, multiple use such statement always when you consider Pick at the same index. It won't stand at a same index bcz we reducing the target
+*/
+int coinChangeRecr(int ind, vector<int> &coins, int amount)
+{
+    // Base case :
+    if (ind == 0)
+    {
+        if (amount % coins[ind] == 0)
+            return amount / coins[ind];
+        return 1e9;
+    }
+    int notPick = coinChangeRecr(ind - 1, coins, amount);
+    int pick = (coins[ind] <= amount)
+                   ? 1 + coinChangeRecr(ind, coins, amount - coins[ind])
+                   : INT_MAX;
+    return min(notPick, pick);
+}
+int coinChangeR(vector<int> &coins, int amount)
+{
+    int n = SZ(coins);
+    int result = coinChangeRecr(n - 1, coins, amount);
+    return result == 1e9 ? -1 : result;
+}
 // Better -----Memoization------>
-// TC :
-// SC :
+// Time Complexity: O(N*T)
+// Reason: There are N*T states therefore at max ‘N*T’ new problems will be solved.
+// Space Complexity: O(N*T) + O(N)
+// Reason: We are using a recursion stack space(O(N)) and a 2D array ( O(N*T)).
+int coinChangeMemo(int ind, vector<int> &coins, int amount, VVI &dp)
+{
+    // Base case :
+    if (ind == 0)
+    {
+        if (amount % coins[ind] == 0)
+            return amount / coins[ind];
+        return 1e9;
+    }
+    if (dp[ind][amount] != -1)
+        return dp[ind][amount];
+    int notPick = coinChangeMemo(ind - 1, coins, amount, dp);
+    int pick = (coins[ind] <= amount)
+                   ? 1 + coinChangeMemo(ind, coins, amount - coins[ind], dp)
+                   : INT_MAX;
+    return dp[ind][amount] = min(notPick, pick);
+}
+int coinChangeM(vector<int> &coins, int amount)
+{
+    int n = SZ(coins);
+    VVI dp(n, VI(amount + 1, -1));
+    int result = coinChangeMemo(n - 1, coins, amount, dp);
+    return result == 1e9 ? -1 : result;
+}
 // Optimal -----Tabulation----->
-// TC :
-// SC :
+// Time Complexity: O(N*T)
+// Reason: There are two nested loops
+// Space Complexity: O(N*T)
+// Reason: We are using an external array of size ‘N*T’. Stack Space is eliminated.
+int coinChangeT(vector<int> &coins, int amount)
+{
+    int n = SZ(coins);
+    VVI dp(n, VI(amount + 1, 0));
+    // Initialize the first row of the DP table
+    for (int i = 0; i <= amount; i++)
+    {
+        if (i % coins[0] == 0)
+            dp[0][i] = i / coins[0];
+        else
+            dp[0][i] = 1e9; // Set it to a very large value if not possible
+    }
+    // Fill the DP table using a bottom-up approach
+    for (int ind = 1; ind < n; ind++)
+    {
+        for (int target = 0; target <= amount; target++)
+        {
+            // Calculate the minimum elements needed without taking the current element
+            int notTake = dp[ind - 1][target];
+
+            // Calculate the minimum elements needed by taking the current element
+            int take = 1e9; // Initialize 'take' to a very large value
+            if (coins[ind] <= target)
+                take = 1 + dp[ind][target - coins[ind]];
+
+            // Store the minimum of 'notTake' and 'take' in the DP table
+            dp[ind][target] = min(notTake, take);
+        }
+    }
+
+    // The answer is in the bottom-right cell of the DP table
+    int ans = dp[n - 1][amount];
+
+    // If 'ans' is still very large, it means it's not possible to form the target sum
+    if (ans >= 1e9)
+        return -1;
+
+    return ans; // Return the minimum number of elements needed
+}
 // Most Optimal -----Space Optimization----->
-// TC :
-// SC :
+// Time Complexity: O(N*T)
+// Reason: There are two nested loops.
+// Space Complexity: O(T)
+// Reason: We are using two external arrays of size ‘T+1’.
+int coinChangeSO(vector<int> &coins, int amount)
+{
+    int n = SZ(coins);
+
+    // Create two vectors to store the previous and current DP states
+    vector<int> prev(amount + 1, 0);
+    vector<int> cur(amount + 1, 0);
+
+    // Initialize the first row of the DP table
+    for (int i = 0; i <= amount; i++)
+    {
+        if (i % coins[0] == 0)
+            prev[i] = i / coins[0];
+        else
+            prev[i] = 1e9; // Set it to a very large value if not possible
+    }
+
+    // Fill the DP table using a bottom-up approach
+    for (int ind = 1; ind < n; ind++)
+    {
+        for (int target = 0; target <= amount; target++)
+        {
+            // Calculate the minimum elements needed without taking the current element
+            int notTake = prev[target];
+
+            // Calculate the minimum elements needed by taking the current element
+            int take = 1e9; // Initialize 'take' to a very large value
+            if (coins[ind] <= target)
+                take = 1 + cur[target - coins[ind]];
+
+            // Store the minimum of 'notTake' and 'take' in the current DP state
+            cur[target] = min(notTake, take);
+        }
+        // Update the previous DP state with the current state for the next iteration
+        prev = cur;
+    }
+
+    // The answer is in the last row of the DP table
+    int ans = prev[amount];
+
+    // If 'ans' is still very large, it means it's not possible to form the target sum
+    if (ans >= 1e9)
+        return -1;
+
+    return ans; // Return the minimum number of elements needed
+}
 /*
 21.
 ANS :
@@ -3337,12 +3498,18 @@ int main()
     // cout << "Count Party T " << countPartitionsT(17, tri) << endl;
     // cout << "Count Party S " << countPartitionsT(17, tri) << endl;
 
-    vector<int> wt = {1, 2, 4, 5};
-    vector<int> val = {5, 4, 8, 6};
-    cout << "0 1 Knapsack R " << knapsackR(wt, val, 5) << endl;
-    cout << "0 1 Knapsack M " << knapsackM(wt, val, 5) << endl;
-    cout << "0 1 Knapsack T " << knapsackT(wt, val, 5) << endl;
-    cout << "0 1 Knapsack S " << knapsackSO(wt, val, 5) << endl;
+    // vector<int> wt = {1, 2, 4, 5};
+    // vector<int> val = {5, 4, 8, 6};
+    // cout << "0 1 Knapsack R " << knapsackR(wt, val, 5) << endl;
+    // cout << "0 1 Knapsack M " << knapsackM(wt, val, 5) << endl;
+    // cout << "0 1 Knapsack T " << knapsackT(wt, val, 5) << endl;
+    // cout << "0 1 Knapsack S " << knapsackSO(wt, val, 5) << endl;
+
+    vector<int> coin = {1, 2, 5};
+    cout << "Min Coin Change R " << coinChangeR(coin, 11) << endl;
+    cout << "Min Coin Change M " << coinChangeM(coin, 11) << endl;
+    cout << "Min Coin Change T " << coinChangeT(coin, 11) << endl;
+    cout << "Min Coin Change S " << coinChangeSO(coin, 11) << endl;
 
     //  End code here-------->>
 

@@ -1,4 +1,4 @@
-0 1 Knapsack R 13
-0 1 Knapsack M 13
-0 1 Knapsack T 13
-0 1 Knapsack S 13
+Min Coin Change R 3
+Min Coin Change M 3
+Min Coin Change T 3
+Min Coin Change S 3
