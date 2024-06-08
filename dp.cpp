@@ -321,7 +321,6 @@ int countDistinctWaysMemo(int n)
 // SC : We are using an external array of size ‘n+1’. we're not using recirsion stack space
 int countDistinctWaysTab(int n)
 {
-
     // Initialize the variable 'mod'.
     const int mod = 1000000007;
 
@@ -331,10 +330,7 @@ int countDistinctWaysTab(int n)
     // Checking if 'n' is less than or equal to '1',
     // Because in that case there is no need for further calculation.
     if (n <= 1)
-    {
-
         return dp[n];
-    }
 
     // Iterate on the range '[2, n]'.
     for (int currStep = 2; currStep <= n; currStep++)
@@ -492,8 +488,7 @@ int frogJumpMemoHelper(int i, VI &heights, VI &dp)
     }
 
     int ans = min(oneJump, twoJump);
-    dp[i] = ans;
-    return ans;
+    return dp[i] = ans;
 }
 int frogJumpMemo(int n, VI &heights)
 {
@@ -554,21 +549,21 @@ Input :   || Output :
 // SC : Since the recursion depth can be at most n (the number of steps), the space complexity is O(n).
 int minimizeCostRecr(int ind, int k, vector<int> &h)
 {
+    // Base case :Signifies reaching the starting point, where no cost is incurred because no jumps are needed from the first stone.
+    // This represents the minimum cost of 0 when the frog is already at the initial position.
     if (ind == 0)
         return 0;
 
     int minStep = INT_MAX;
     for (int j = 1; j <= k; j++)
     {
-        if (ind - j >= 0)
+        if (ind - j >= 0) // Here, ind is total stairs and j is no of jumps rthat can someone make
         {
             int jump = minimizeCostRecr(ind - j, k, h) + abs(h[ind] - h[ind - j]);
             minStep = min(minStep, jump);
         }
         else
-        {
             break;
-        }
     }
     return minStep;
 }
@@ -619,6 +614,7 @@ int minimizeCostMemo(int n, int k, vector<int> &height)
 // SC :O(N)
 int minimizeCostTabHelper(int n, vector<int> &height, vector<int> &dp, int k)
 {
+    // Base case: If we are at the beginning (index 0), no cost is needed.
     dp[0] = 0;
 
     // Loop through the array to fill in the dp array
@@ -3127,41 +3123,207 @@ int coinChangeSO(vector<int> &coins, int amount)
     return ans; // Return the minimum number of elements needed
 }
 /*
-21.
-ANS :
+21.Target Sum
+ANS : You are given an integer array nums and an integer target.
+You want to build an expression out of nums by adding one of the symbols '+' and '-' before each integer in nums and then concatenate all the integers.
+For example, if nums = [2, 1], you can add a '+' before 2 and a '-' before 1 and concatenate them to build the expression "+2-1".
+Return the number of different expressions that you can build, which evaluates to target.
 Input :   || Output :
 */
+/*
+Intuition : This prob is similar to divide the array into two partitions or subsets such that s1 is sum(subset1) & s2 is sum(subset2) and the diffrenece
+is the target that you're looking for.
+*/
 // Bruteforce ------Recursion----->
-// TC :
-// SC :
+// Time Complexity: O(N*K)
+// Reason: There are N*K states therefore at max ‘N*K’ new problems will be solved.
+// Space Complexity: O(N)
+// Reason: We are using a recursion stack space(O(N))
+int findTargetSumWaysR(vector<int> &nums, int target)
+{
+    int n = SZ(nums);
+    int totSum = 0;
+    trav(it, nums) totSum += it;
+
+    // Checking for edge cases
+    if (totSum - target < 0 || (totSum - target) % 2)
+        return false;
+
+    int s2 = (totSum - target) / 2;
+    return findWaysRecr(n - 1, s2, nums);
+}
 // Better -----Memoization------>
-// TC :
-// SC :
+// Time Complexity: O(N*K)
+// Reason: There are N*K states therefore at max ‘N*K’ new problems will be solved.
+// Space Complexity: O(N*K) + O(N)
+// Reason: We are using a recursion stack space(O(N)) and a 2D array ( O(N*K)).
+int findTargetSumWaysM(vector<int> &nums, int target)
+{
+    return findWaysM(nums, target);
+}
 // Optimal -----Tabulation----->
-// TC :
-// SC :
+// Time Complexity: O(N*K)
+// Reason: There are two nested loops
+// Space Complexity: O(N*K)
+// Reason: We are using an external array of size ‘N*K’. Stack Space is eliminated.
+int findTargetSumWaysT(vector<int> &nums, int target)
+{
+    return findWaysT(nums, target);
+}
 // Most Optimal -----Space Optimization----->
-// TC :
-// SC :
+// Time Complexity: O(N*K)
+// Reason: There are two nested loops
+// Space Complexity: O(K)
+// Reason: We are using an external array of size ‘K+1’ to store only one row.
+int findTargetSumWaysSO(vector<int> &nums, int target)
+{
+    return findWaysSO(nums, target);
+}
 
 /*
-22.
-ANS :
+22. Coin Change II
+ANS : You are given an integer array coins representing coins of different denominations and an integer amount representing a total amount of money.
+Return the number of combinations that make up that amount. If that amount of money cannot be made up by any combination of the coins, return 0.
+You may assume that you have an infinite number of each kind of coin.
+The answer is guaranteed to fit into a signed 32-bit integer.
+
 Input :   || Output :
 */
 // Bruteforce ------Recursion----->
-// TC :
-// SC :
-// Better -----Memoization------>
-// TC :
-// SC :
-// Optimal -----Tabulation----->
-// TC :
-// SC :
-// Most Optimal -----Space Optimization----->
-// TC :
-// SC :
+// Time Complexity: O(N*T)
+// Reason: There are N*T states therefore at max ‘N*T’ new problems will be solved.
+// Space Complexity:  O(N)
+// Reason: We are using a recursion stack space(O(N))
+int coinChangeRecrII(int ind, vector<int> &coins, int amount)
+{
+    // Base case :
+    if (amount == 0)
+        return 1; // one valid combination found
+    if (ind < 0 || amount < 0)
+        return 0; // no valid combination
 
+    // Don't pick the current coin
+    int notPick = coinChangeRecrII(ind - 1, coins, amount);
+
+    // Pick the current coin
+    int pick = (coins[ind] <= amount) ? coinChangeRecrII(ind, coins, amount - coins[ind]) : 0;
+
+    // Return the sum of both choices
+    return notPick + pick;
+}
+int coinChangeRII(vector<int> &coins, int amount)
+{
+    int n = SZ(coins);
+    return coinChangeRecrII(n - 1, coins, amount);
+}
+// Better -----Memoization------>
+// Time Complexity: O(N*T)
+// Reason: There are N*T states therefore at max ‘N*T’ new problems will be solved.
+// Space Complexity: O(N*T) + O(N)
+// Reason: We are using a recursion stack space(O(N)) and a 2D array ( O(N*T)).
+int coinChangeMemoII(int ind, VI &coins, int amount, VVI &dp)
+{
+    // Base case: if we're at the first element
+    if (ind == 0)
+    {
+        // Check if the target sum is divisible by the first element
+        return (amount % coins[0] == 0);
+    }
+
+    // If the result for this index and target sum is already calculated, return it
+    if (dp[ind][amount] != -1)
+        return dp[ind][amount];
+
+    // Calculate the number of ways without taking the current element
+    int notTaken = coinChangeMemoII(ind - 1, coins, amount, dp);
+
+    // Calculate the number of ways by taking the current element
+    int taken = 0;
+    if (coins[ind] <= amount)
+        taken = coinChangeMemoII(ind, coins, amount - coins[ind], dp);
+
+    // Store the sum of ways in the DP table and return it
+    return dp[ind][amount] = notTaken + taken;
+}
+int coinChangeMII(vector<int> &coins, int amount)
+{
+    int n = SZ(coins);
+    VVI dp(n, VI(amount + 1, -1));
+    return coinChangeMemoII(n - 1, coins, amount, dp);
+}
+// Optimal -----Tabulation----->
+// Time Complexity: O(N*T)
+// Reason: There are two nested loops
+// Space Complexity: O(N*T)
+// Reason: We are using an external array of size ‘N*T’. Stack Space is eliminated.
+int coinChangeTII(vector<int> &arr, int T)
+{
+    int n = SZ(arr);
+    VVI dp(n, VI(T + 1, 0));
+
+    // Initializing base condition
+    for (int i = 0; i <= T; i++)
+    {
+        if (i % arr[0] == 0)
+            dp[0][i] = 1;
+        // Else condition is automatically fulfilled,
+        // as dp array is initialized to zero
+    }
+
+    for (int ind = 1; ind < n; ind++)
+    {
+        for (int target = 0; target <= T; target++)
+        {
+            int notTaken = dp[ind - 1][target];
+
+            int taken = 0;
+            if (arr[ind] <= target)
+                taken = dp[ind][target - arr[ind]];
+
+            dp[ind][target] = notTaken + taken;
+        }
+    }
+
+    return dp[n - 1][T];
+}
+// Most Optimal -----Space Optimization----->
+// Time Complexity: O(N*T)
+// Reason: There are two nested loops.
+// Space Complexity: O(T)
+// Reason: We are using two external arrays of size ‘T+1’.
+int coinChangeSOII(vector<int> &arr, int T)
+{
+    int n = SZ(arr);
+
+    vector<int> prev(T + 1, 0); // Create a vector to store the previous DP state
+
+    // Initialize base condition
+    for (int i = 0; i <= T; i++)
+    {
+        if (i % arr[0] == 0)
+            prev[i] = 1; // There is one way to make change for multiples of the first coin
+        // Else condition is automatically fulfilled,
+        // as the prev vector is initialized to zero
+    }
+
+    for (int ind = 1; ind < n; ind++)
+    {
+        vector<int> cur(T + 1, 0); // Create a vector to store the current DP state
+        for (int target = 0; target <= T; target++)
+        {
+            int notTaken = prev[target]; // Number of ways without taking the current coin
+
+            int taken = 0;
+            if (arr[ind] <= target)
+                taken = cur[target - arr[ind]]; // Number of ways by taking the current coin
+
+            cur[target] = notTaken + taken; // Total number of ways for the current target
+        }
+        prev = cur; // Update the previous DP state with the current state for the next coin
+    }
+
+    return prev[T]; // Return the total number of ways to make change for the target
+}
 /*
 23.
 ANS :
@@ -3505,11 +3667,16 @@ int main()
     // cout << "0 1 Knapsack T " << knapsackT(wt, val, 5) << endl;
     // cout << "0 1 Knapsack S " << knapsackSO(wt, val, 5) << endl;
 
-    vector<int> coin = {1, 2, 5};
-    cout << "Min Coin Change R " << coinChangeR(coin, 11) << endl;
-    cout << "Min Coin Change M " << coinChangeM(coin, 11) << endl;
-    cout << "Min Coin Change T " << coinChangeT(coin, 11) << endl;
-    cout << "Min Coin Change S " << coinChangeSO(coin, 11) << endl;
+    vector<int> coin = {1, 2, 3};
+    // cout << "Min Coin Change R " << coinChangeR(coin, 11) << endl;
+    // cout << "Min Coin Change M " << coinChangeM(coin, 11) << endl;
+    // cout << "Min Coin Change T " << coinChangeT(coin, 11) << endl;
+    // cout << "Min Coin Change S " << coinChangeSO(coin, 11) << endl;
+
+    cout << "Min Coin Change R " << coinChangeRII(coin, 11) << endl;
+    cout << "Min Coin Change M " << coinChangeMII(coin, 11) << endl;
+    cout << "Min Coin Change T " << coinChangeTII(coin, 11) << endl;
+    cout << "Min Coin Change S " << coinChangeSOII(coin, 11) << endl;
 
     //  End code here-------->>
 

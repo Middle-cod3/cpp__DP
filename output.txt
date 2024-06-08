@@ -1,4 +1,4 @@
-Min Coin Change R 3
-Min Coin Change M 3
-Min Coin Change T 3
-Min Coin Change S 3
+Min Coin Change R 16
+Min Coin Change M 16
+Min Coin Change T 16
+Min Coin Change S 16
