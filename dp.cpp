@@ -131,7 +131,7 @@ iii. whenever we call recursion just check if it has been previously computed or
 $$$ MEMOIZATION -> TABULATION
 ->i.Check how much dp array is used then init it.
 ii.Look for the base case.(Insteadof checking outer boundry first you can use i>0 for doing call)
-iii. Try a loop
+iii. Try a loop(which are changing params)
 iv. The change recursion code to dp (Calls are going to according i,j)
 v. At the end inside loop store in dp
 
@@ -1050,6 +1050,7 @@ int uniquePathsRecr(int m, int n)
 {
     if (m == 1 || n == 1) // Base case: If either dimension is 1, there is only one unique path.
         return 1;
+    cout << m << " " << n << endl;
     return uniquePathsRecr(m - 1, n) + uniquePathsRecr(m, n - 1); // Recursive call to explore paths from up and left.
 }
 // Better ------Memoization----->
@@ -1082,6 +1083,7 @@ int uniquePathsMemoHelper(int i, int j, VVI &dp)
         return dp[i][j];
 
     // Calculate the number of ways by moving up and left recursively.
+    cout << i << " " << j << endl;
     int up = uniquePathsMemoHelper(i - 1, j, dp);
     int left = uniquePathsMemoHelper(i, j - 1, dp);
 
@@ -3325,40 +3327,215 @@ int coinChangeSOII(vector<int> &arr, int T)
     return prev[T]; // Return the total number of ways to make change for the target
 }
 /*
-23.
-ANS :
+23. Unbounded Knapsack || Knapsack with Duplicate Items
+ANS : Given a set of N items, each with a weight and a value, represented by the array w and val respectively. Also, a knapsack with weight limit W.
+The task is to fill the knapsack in such a way that we can get the maximum profit. Return the maximum profit.
+
+Note: Each item can be taken any number of times.
 Input :   || Output :
 */
 // Bruteforce ------Recursion----->
-// TC :
-// SC :
+// Time Complexity: O(N*W)
+// Reason: There are N*W states therefore at max ‘N*W’ new problems will be solved.
+// Space Complexity: O(N)
+// Reason: We are using a recursion stack space(O(N))
+int knapSackRecrII(int ind, int W, int val[], int wt[])
+{
+    // Base case: if we're at the first item
+    if (ind == 0)
+    {
+        // Calculate and return the maximum value for the given weight limit
+        return (W / wt[0]) * val[0];
+    }
+    int notPick = knapSackRecrII(ind - 1, W, val, wt);
+    int pick = (wt[ind] <= W) ? val[ind] + knapSackRecrII(ind, W - wt[ind], val, wt) : INT_MIN;
+    return max(notPick, pick);
+}
+int knapSackRII(int N, int W, int val[], int wt[])
+{
+    return knapSackRecrII(N - 1, W, val, wt);
+}
 // Better -----Memoization------>
-// TC :
-// SC :
+// Time Complexity: O(N*W)
+// Reason: There are N*W states therefore at max ‘N*W’ new problems will be solved.
+// Space Complexity: O(N*W) + O(N)
+// Reason: We are using a recursion stack space(O(N)) and a 2D array ( O(N*W)).
+int knapSackMemoII(int ind, int W, int val[], int wt[], VVI &dp)
+{
+    // Base case :
+    if (ind == 0)
+        return (W / wt[0]) * val[0];
+    if (dp[ind][W] != -1)
+        return dp[ind][W];
+    int notPick = knapSackMemoII(ind - 1, W, val, wt, dp);
+    int pick = (wt[ind] <= W) ? val[ind] + knapSackMemoII(ind, W - wt[ind], val, wt, dp) : INT_MIN;
+    return dp[ind][W] = max(notPick, pick);
+}
+int knapSackMII(int N, int W, int val[], int wt[])
+{
+    VVI dp(N, VI(W + 1, -1));
+    return knapSackMemoII(N - 1, W, val, wt, dp);
+}
 // Optimal -----Tabulation----->
-// TC :
-// SC :
+// Time Complexity: O(N*W)
+// Reason: There are two nested loops
+// Space Complexity: O(N*W)
+// Reason: We are using an external array of size ‘N*W’. Stack Space is eliminated.
+int knapSackTII(int N, int W, int val[], int wt[])
+{
+    VVI dp(N, VI(W + 1, 0));
+    // Base Condition
+    for (int i = wt[0]; i <= W; i++)
+    {
+        dp[0][i] = (i / wt[0]) * val[0]; // Calculate the maximum value for the first item
+    }
+
+    for (int ind = 1; ind < N; ind++)
+    {
+        for (int cap = 0; cap <= W; cap++)
+        {
+            int notTaken = 0 + dp[ind - 1][cap]; // Maximum value without taking the current item
+
+            int taken = INT_MIN;
+            if (wt[ind] <= cap)
+                taken = val[ind] + dp[ind][cap - wt[ind]]; // Maximum value by taking the current item
+
+            dp[ind][cap] = max(notTaken, taken); // Store the maximum value in the DP table
+        }
+    }
+
+    return dp[N - 1][W]; // Return the maximum value considering all items and the knapsack capacity
+}
 // Most Optimal -----Space Optimization----->
-// TC :
-// SC :
+// Time Complexity: O(N*W)
+// Reason: There are two nested loops.
+// Space Complexity: O(W)
+// Reason: We are using an external array of size ‘W+1’ to store only one row.
+int knapSackSOII(int N, int W, int val[], int wt[])
+{
+    vector<int> cur(W + 1, 0); // Create a vector to store the current DP state
+
+    // Base Condition
+    for (int i = wt[0]; i <= W; i++)
+    {
+        cur[i] = (i / wt[0]) * val[0]; // Calculate the maximum value for the first item
+    }
+
+    for (int ind = 1; ind < N; ind++)
+    {
+        for (int cap = 0; cap <= W; cap++)
+        {
+            int notTaken = cur[cap]; // Maximum value without taking the current item
+
+            int taken = INT_MIN;
+            if (wt[ind] <= cap)
+                taken = val[ind] + cur[cap - wt[ind]]; // Maximum value by taking the current item
+
+            cur[cap] = max(notTaken, taken); // Store the maximum value in the current DP state
+        }
+    }
+
+    return cur[W]; // Return the maximum value considering all items and the knapsack capacity
+}
 
 /*
-24.
-ANS :
+24. Rod Cutting
+ANS : Given a rod of length N inches and an array of prices, price[]. price[i] denotes the value of a piece of length i. Determine the maximum value obtainable by cutting up the rod and selling the pieces.
+Note: Consider 1-based indexing.
 Input :   || Output :
+Intuition : You can chnage the question as How do you collect rod lengths to make N and while collecting rod lengths maximize the price .
+As you can see now its a similer prob as Knapsack prob.
+Now, try to pick lengths and sum it up to make N
 */
 // Bruteforce ------Recursion----->
-// TC :
-// SC :
+// Time Complexity: O(N*W) or exponential its >2^n bcz we're staying at same index
+// Reason: There are N*W states therefore at max ‘N*W’ new problems will be solved.
+// Space Complexity: O(N*W) + O(N)
+// Reason: We are using a recursion stack space(O(N)) and a 2D array ( O(N*W)).
+int curRodRecr(int ind, int N, VI &price)
+{
+    if (ind == 0)
+        return N * price[0];
+    int notPick = curRodRecr(ind - 1, N, price);
+    int rodLen = ind + 1;
+    int pick = (rodLen <= N) ? price[ind] + curRodRecr(ind, N - rodLen, price) : INT_MIN;
+    return max(notPick, pick);
+}
+int cutRodR(vector<int> &price, int n)
+{
+    return curRodRecr(n - 1, n, price);
+}
 // Better -----Memoization------>
-// TC :
-// SC :
+// Time Complexity: O(N*W)
+// Reason: There are N*W states therefore at max ‘N*W’ new problems will be solved.
+// Space Complexity: O(N*W) + O(N)
+// Reason: We are using a recursion stack space(O(N)) and a 2D array ( O(N*W)).
+int curRodMemo(int ind, int N, VI &price, VVI &dp)
+{
+    if (ind == 0)
+        return N * price[0];
+    if (dp[ind][N] != -1)
+        return dp[ind][N];
+    int notPick = curRodMemo(ind - 1, N, price, dp);
+    int rodLen = ind + 1;
+    int pick = (rodLen <= N) ? price[ind] + curRodMemo(ind, N - rodLen, price, dp) : INT_MIN;
+    return dp[ind][N] = max(notPick, pick);
+}
+int cutRodM(vector<int> &price, int n)
+{
+    VVI dp(n, VI(n + 1, -1));
+    return curRodMemo(n - 1, n, price, dp);
+}
 // Optimal -----Tabulation----->
-// TC :
-// SC :
+// Time Complexity: O(N*W)
+// Reason: There are two nested loops
+// Space Complexity: O(N*W)
+// Reason: We are using an external array of size ‘N*W’. Stack Space is eliminated.
+int cutRodT(vector<int> &price, int n)
+{
+    VVI dp(n, VI(n + 1, 0));
+    // Base case :
+    for (int N = 0; N <= n; N++)
+    {
+        dp[0][N] = N * price[0];
+    }
+
+    for (int ind = 1; ind < n; ind++)
+    {
+        for (int N = 0; N <= n; N++)
+        {
+            int notPick = dp[ind - 1][N];
+            int rodLen = ind + 1;
+            int pick = (rodLen <= N) ? price[ind] + dp[ind][N - rodLen] : INT_MIN;
+            dp[ind][N] = max(pick, notPick);
+        }
+    }
+    return dp[n - 1][n];
+}
 // Most Optimal -----Space Optimization----->
 // TC :
 // SC :
+int cutRodSO(vector<int> &price, int n)
+{
+    VI prev(n + 1, 0);
+    for (int N = 0; N <= n; N++)
+    {
+        prev[N] = N * price[0];
+    }
+
+    for (int ind = 1; ind < n; ind++)
+    {
+        for (int N = 0; N <= n; N++)
+        {
+            int notPick = prev[N];
+            int rodLen = ind + 1;
+            int pick = (rodLen <= N) ? price[ind] + prev[N - rodLen] : INT_MIN;
+            prev[N] = max(pick, notPick);
+        }
+       
+    }
+    return prev[n];
+}
 
 /*
 25.
@@ -3598,8 +3775,8 @@ int main()
     // cout << "Maximum points " << maximumPointsMemo(pts, 3) << endl;
     // cout << "Maximum points " << maximumPointsTabu(pts, 3) << endl;
     // cout << "Maximum points " << maximumPointsSopti(pts, 3) << endl;
-    // cout << "All paths " << allPaths(2, 2) << endl;
-    // cout << "All paths " << uniquePathsRecr(2, 2) << endl;
+    // cout << "All paths " << allPaths(3, 7) << endl;
+    // cout << "All paths " << uniquePathsRecr(3, 2) << endl;
     // cout << "All paths " << uniquePathsMemo(2, 2) << endl;
     // cout << "All paths " << uniquePathsTabu(2, 2) << endl;
     // cout << "All paths " << uniquePathsSopti(2, 2) << endl;
@@ -3667,16 +3844,31 @@ int main()
     // cout << "0 1 Knapsack T " << knapsackT(wt, val, 5) << endl;
     // cout << "0 1 Knapsack S " << knapsackSO(wt, val, 5) << endl;
 
-    vector<int> coin = {1, 2, 3};
+    // vector<int> coin = {1, 2, 3};
     // cout << "Min Coin Change R " << coinChangeR(coin, 11) << endl;
     // cout << "Min Coin Change M " << coinChangeM(coin, 11) << endl;
     // cout << "Min Coin Change T " << coinChangeT(coin, 11) << endl;
     // cout << "Min Coin Change S " << coinChangeSO(coin, 11) << endl;
 
-    cout << "Min Coin Change R " << coinChangeRII(coin, 11) << endl;
-    cout << "Min Coin Change M " << coinChangeMII(coin, 11) << endl;
-    cout << "Min Coin Change T " << coinChangeTII(coin, 11) << endl;
-    cout << "Min Coin Change S " << coinChangeSOII(coin, 11) << endl;
+    // cout << "Min Coin Change R " << coinChangeRII(coin, 11) << endl;
+    // cout << "Min Coin Change M " << coinChangeMII(coin, 11) << endl;
+    // cout << "Min Coin Change T " << coinChangeTII(coin, 11) << endl;
+    // cout << "Min Coin Change S " << coinChangeSOII(coin, 11) << endl;
+
+    // int val[4] = {1,4,5,7};
+    // int wt[4] = {1,3,4,5};
+    // int val[4] = {6, 1, 7, 7};
+    // int wt[4] = {1, 3, 4, 5};
+    // cout << "Max Knapsack " << knapSackRII(4, 8, val, wt) << endl;
+    // cout << "Max Knapsack " << knapSackMII(4, 8, val, wt) << endl;
+    // cout << "Max Knapsack " << knapSackTII(4, 8, val, wt) << endl;
+    // cout << "Max Knapsack " << knapSackSOII(4, 8, val, wt) << endl;
+
+    VI rod = {2, 5, 7, 8, 10};
+    cout << "Rod len " << cutRodR(rod, 5) << endl;
+    cout << "Rod len " << cutRodM(rod, 5) << endl;
+    cout << "Rod len " << cutRodT(rod, 5) << endl;
+    cout << "Rod len " << cutRodSO(rod, 5) << endl;
 
     //  End code here-------->>
 
