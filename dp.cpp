@@ -169,6 +169,11 @@ iii. If the qs says count all the ways ->sum up all the stuffs
 Example given in Frog Jump redirect to 413 line
 
 🔟 REMEMBER : Whenever there is a infinite supply of anything, multiple use such statement always when you consider Pick at the same index. It won't stand at a same index bcz we reducing the target
+
+1️⃣1️⃣ Shortcut trick for DP on String *******
+i. Express ind1 & ind2 (when it talk about 2 string its mean string 1= string[0...ind1] string 2 = string [0...ind2])
+ii. Explore possibilities on that index
+iii. Take the best amoung them
 */
 
 /*##############################1D DP#################################*/
@@ -3513,8 +3518,10 @@ int cutRodT(vector<int> &price, int n)
     return dp[n - 1][n];
 }
 // Most Optimal -----Space Optimization----->
-// TC :
-// SC :
+// Time Complexity: O(N*W)
+// Reason: There are two nested loops.
+// Space Complexity: O(W)
+// Reason: We are using an external array of size ‘W+1’ to store only one row.
 int cutRodSO(vector<int> &price, int n)
 {
     VI prev(n + 1, 0);
@@ -3532,28 +3539,142 @@ int cutRodSO(vector<int> &price, int n)
             int pick = (rodLen <= N) ? price[ind] + prev[N - rodLen] : INT_MIN;
             prev[N] = max(pick, notPick);
         }
-       
     }
     return prev[n];
 }
 
+/*##############################DP ON STRINGS#################################*/
+
 /*
-25.
-ANS :
+25. Longest Common Subsequence
+ANS : Given two strings text1 and text2, return the length of their longest common subsequence. If there is no common subsequence, return 0.
+
+A subsequence of a string is a new string generated from the original string with some characters (can be none) deleted without changing the relative order of the remaining characters.
+
+For example, "ace" is a subsequence of "abcde".
+A common subsequence of two strings is a subsequence that is common to both strings.
+## Bruteforce should be generate all subsequences and then compare for both string but for this Time comp will be exponential in nature
 Input :   || Output :
 */
 // Bruteforce ------Recursion----->
-// TC :
-// SC :
+// Time Complexity: O(N*M)
+// Reason: There are N*M states therefore at max ‘N*M’ new problems will be solved.
+// Space Complexity: O(N*M)
+// Reason: We are using an auxiliary recursion stack space(O(N+M)) (see the recursive tree, in the worst case, we will go till N+M calls at a time)
+/*
+Intuition : So, we're trying to generate all subsequences & compare on way for generate all subsequences we're twirk some thing.
+So, If both string subsequence is matching then increment by one and go for next subsequences for both string.
+If its not matched then go for both strings next subsequence individually and return max of this 2 subsequence.
+And the base case is : if any moment index is at end of the string means ind1<0 || ind2<0 then the longest length is 0
+*/
+int longestCommonSubsequenceRecr(int ind1, int ind2, string text1, string text2)
+{
+    // Base case :
+    if (ind1 < 0 || ind2 < 0)
+        return 0;
+
+    // If subsequences matched
+    if (text1[ind1] == text2[ind2])
+        return 1 + longestCommonSubsequenceRecr(ind1 - 1, ind2 - 1, text1, text2);
+    int t1 = longestCommonSubsequenceRecr(ind1 - 1, ind2, text1, text2);
+    int t2 = longestCommonSubsequenceRecr(ind1, ind2 - 1, text1, text2);
+    return max(t1, t2);
+}
+int longestCommonSubsequenceR(string text1, string text2)
+{
+    int n = SZ(text1);
+    int m = SZ(text2);
+    return longestCommonSubsequenceRecr(n - 1, m - 1, text1, text2);
+}
 // Better -----Memoization------>
 // TC :
 // SC :
+int longestCommonSubsequenceMemo(int ind1, int ind2, string text1, string text2, VVI &dp)
+{
+    // Base case :
+    if (ind1 < 0 || ind2 < 0)
+        return 0;
+    if (dp[ind1][ind2] != -1)
+        return dp[ind1][ind2];
+    // If subsequences matched
+    if (text1[ind1] == text2[ind2])
+        return dp[ind1][ind2] = 1 + longestCommonSubsequenceMemo(ind1 - 1, ind2 - 1, text1, text2, dp);
+    int t1 = longestCommonSubsequenceMemo(ind1 - 1, ind2, text1, text2, dp);
+    int t2 = longestCommonSubsequenceMemo(ind1, ind2 - 1, text1, text2, dp);
+    return dp[ind1][ind2] = max(t1, t2);
+}
+int longestCommonSubsequenceM(string text1, string text2)
+{
+    int n = SZ(text1);
+    int m = SZ(text2);
+    VVI dp(n, VI(m + 1, -1));
+    return longestCommonSubsequenceMemo(n - 1, m - 1, text1, text2, dp);
+}
 // Optimal -----Tabulation----->
-// TC :
-// SC :
+// Time Complexity: O(N*M)
+// Reason: There are two nested loops
+// Space Complexity: O(N*M)
+// Reason: We are using an external array of size ‘N*M)’. Stack Space is eliminated.
+int longestCommonSubsequenceT(string s1, string s2)
+{
+    int n = s1.size();
+    int m = s2.size();
+
+    vector<vector<int>> dp(n + 1, vector<int>(m + 1, -1)); // Create a DP table
+
+    // Initialize the base cases
+    for (int i = 0; i <= n; i++)
+    {
+        dp[i][0] = 0;
+    }
+    for (int i = 0; i <= m; i++)
+    {
+        dp[0][i] = 0;
+    }
+
+    // Fill in the DP table to calculate the length of LCS
+    for (int ind1 = 1; ind1 <= n; ind1++)
+    {
+        for (int ind2 = 1; ind2 <= m; ind2++)
+        {
+            if (s1[ind1 - 1] == s2[ind2 - 1])
+                dp[ind1][ind2] = 1 + dp[ind1 - 1][ind2 - 1]; // Characters match, increment LCS length
+            else
+                dp[ind1][ind2] = max(dp[ind1 - 1][ind2], dp[ind1][ind2 - 1]); // Characters don't match, consider the maximum from left or above
+        }
+    }
+
+    return dp[n][m]; // Return the length of the Longest Common Subsequence
+}
 // Most Optimal -----Space Optimization----->
-// TC :
-// SC :
+// Time Complexity: O(N*M)
+// Reason: There are two nested loops.
+// Space Complexity: O(M)
+// Reason: We are using an external array of size ‘M+1’ to store only two rows.
+int longestCommonSubsequenceSO(string s1, string s2)
+{
+    int n = s1.size();
+    int m = s2.size();
+
+    // Initialize two vectors to store the current and previous rows of the DP table
+    vector<int> prev(m + 1, 0), cur(m + 1, 0);
+
+    // Base case is covered as we have initialized the prev and cur vectors to 0.
+
+    for (int ind1 = 1; ind1 <= n; ind1++)
+    {
+        for (int ind2 = 1; ind2 <= m; ind2++)
+        {
+            if (s1[ind1 - 1] == s2[ind2 - 1])
+                cur[ind2] = 1 + prev[ind2 - 1]; // Characters match, increment LCS length
+            else
+                cur[ind2] = max(prev[ind2], cur[ind2 - 1]); // Characters don't match, consider the maximum from above or left
+        }
+        prev = cur; // Update the previous row with the current row
+    }
+
+    return prev[m]; // Return the length of the Longest Common Subsequence
+}
 
 /*
 26.
