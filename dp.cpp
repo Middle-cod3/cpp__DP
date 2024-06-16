@@ -18,6 +18,7 @@ typedef queue<pair<pair<int, int>, int>> QPP;
 #define REV(x) reverse(x.begin(), x.end());
 #define trav(a, x) for (auto &a : x)
 #define FOR(i, n) for (int i = 0; i < n; i++)
+#define FORE(i, n) for (int i = 0; i <= n; i++)
 #define FOR_INNER(j, i, n) for (int j = i; j < n; j++)
 #define FOR1(i, n) for (int i = 1; i <= n; i++)
 #define SORT(x) sort(x.begin(), x.end())
@@ -3677,7 +3678,7 @@ int longestCommonSubsequenceSO(string s1, string s2)
 }
 
 /*
-26.
+26. Print Longest Common Subsequence
 ANS :
 Input :   || Output :
 */
@@ -3688,15 +3689,74 @@ Input :   || Output :
 // TC :
 // SC :
 // Optimal -----Tabulation----->
-// TC :
-// SC :
+// Time Complexity: O(N*M)
+// Reason: There are two nested loops
+// Space Complexity: O(N*M)
+// Reason: We are using an external array of size ‘N*M’. Stack Space is eliminated.
+void lcs(string s1, string s2)
+{
+
+    int n = s1.size();
+    int m = s2.size();
+
+    vector<vector<int>> dp(n + 1, vector<int>(m + 1, 0));
+    for (int i = 0; i <= n; i++)
+    {
+        dp[i][0] = 0;
+    }
+    for (int i = 0; i <= m; i++)
+    {
+        dp[0][i] = 0;
+    }
+
+    for (int ind1 = 1; ind1 <= n; ind1++)
+    {
+        for (int ind2 = 1; ind2 <= m; ind2++)
+        {
+            if (s1[ind1 - 1] == s2[ind2 - 1])
+                dp[ind1][ind2] = 1 + dp[ind1 - 1][ind2 - 1];
+            else
+                dp[ind1][ind2] = 0 + max(dp[ind1 - 1][ind2], dp[ind1][ind2 - 1]);
+        }
+    }
+
+    int len = dp[n][m];
+    int i = n;
+    int j = m;
+
+    int index = len - 1;
+    string str = "";
+    for (int k = 1; k <= len; k++)
+    {
+        str += "$"; // dummy string
+    }
+
+    while (i > 0 && j > 0)
+    {
+        if (s1[i - 1] == s2[j - 1])
+        {
+            str[index] = s1[i - 1];
+            index--;
+            i--;
+            j--;
+        }
+        else if (s1[i - 1] > s2[j - 1])
+        {
+            i--;
+        }
+        else
+            j--;
+    }
+    cout << str;
+}
 // Most Optimal -----Space Optimization----->
 // TC :
 // SC :
 
 /*
-27.
-ANS :
+27. Longest Common Substring
+ANS : Given two strings. The task is to find the length of the longest common substring.
+
 Input :   || Output :
 */
 // Bruteforce ------Recursion----->
@@ -3706,11 +3766,84 @@ Input :   || Output :
 // TC :
 // SC :
 // Optimal -----Tabulation----->
-// TC :
-// SC :
+// Time Complexity: O(N*M)
+// Reason: There are two nested loops
+// Space Complexity: O(N*M)
+// Reason: We are using an external array of size ‘N*M)’. Stack Space is eliminated.
+/*
+Intuition : We cant use subsequences method bcz there we're not caring consecutiveness but for you've to so we  need to chnage some conditions.
+While finding the longest common subsequence, we were using two pointers (ind1 and ind2) to map the characters of the two strings. We will again have the same set of conditions for finding the longest common substring, with slight modifications to what we do when the condition becomes true.
+We will try to form a solution in the bottom-up (tabulation) approach. We will set two nested loops with loop variables i and j.
+Thinking in terms of consecutiveness of characters
+We have two conditions:
+
+if(S1[i-1] != S2[j-1]), the characters don’t match, therefore the consecutiveness of characters is broken. So we set the cell value (dp[i][j]) as 0.
+if(S1[i-1] == S2[j-1]), then the characters match and we simply set its value to 1+dp[i-1][j-1]. We have done so because dp[i-1][j-1] gives us the longest common substring till the last cell character (current strings -{matching character}). As the current cell’s character is matching we are adding 1 to the consecutive chain.
+Note: dp[n][m] will not give us the answer; rather the maximum value in the entire dp array will give us the length of the longest common substring. This is because there is no restriction that the longest common substring is present at the end of both the strings.
+*/
+int longestCommonSubstringT(string s1, string s2)
+{
+    int n = SZ(s1);
+    int m = SZ(s2);
+
+    VVI dp(n + 1, VI(m + 1, -1)); // Create a DP table
+
+    // Initialize the base cases
+    FORE(i, n)
+    dp[i][0] = 0;
+    FORE(i, m)
+    dp[0][i] = 0;
+    int ans = 0;
+    // Fill in the DP table to calculate the length of LCS
+    FOR1(ind1, n)
+    {
+        FOR1(ind2, m)
+        {
+            if (s1[ind1 - 1] == s2[ind2 - 1])
+            {
+                dp[ind1][ind2] = 1 + dp[ind1 - 1][ind2 - 1]; // Characters match, increment LCS length
+                ans = max(ans, dp[ind1][ind2]);
+            }
+            else
+                dp[ind1][ind2] = 0; // Characters don't match, substring length becomes 0
+        }
+    }
+
+    return ans;
+}
 // Most Optimal -----Space Optimization----->
-// TC :
-// SC :
+// Time Complexity: O(N*M)
+// Reason: There are two nested loops.
+// Space Complexity: O(M)
+// Reason: We are using an external array of size ‘M+1’ to store only two rows.
+int longestCommonSubstringSO(string s1, string s2)
+{
+    int n = SZ(s1);
+    int m = SZ(s2);
+
+    // Initialize two vectors to store the current and previous rows of the DP table
+    vector<int> prev(m + 1, 0), cur(m + 1, 0);
+    int ans = 0;
+
+    // Base case is covered as we have initialized the prev and cur vectors to 0.
+
+    FORE(ind1, n)
+    {
+        FORE(ind2, m)
+        {
+            if (s1[ind1 - 1] == s2[ind2 - 1])
+            {
+                cur[ind2] = 1 + prev[ind2 - 1]; // Characters match, increment LCS length
+                ans = max(ans, cur[ind2 - 1]);
+            }
+            else
+                cur[ind2] = max(prev[ind2], cur[ind2 - 1]); // Characters don't match, consider the maximum from above or left
+        }
+        prev = cur; // Update the previous row with the current row
+    }
+
+    return ans;
+}
 
 /*
 28.
@@ -3985,11 +4118,19 @@ int main()
     // cout << "Max Knapsack " << knapSackTII(4, 8, val, wt) << endl;
     // cout << "Max Knapsack " << knapSackSOII(4, 8, val, wt) << endl;
 
-    VI rod = {2, 5, 7, 8, 10};
-    cout << "Rod len " << cutRodR(rod, 5) << endl;
-    cout << "Rod len " << cutRodM(rod, 5) << endl;
-    cout << "Rod len " << cutRodT(rod, 5) << endl;
-    cout << "Rod len " << cutRodSO(rod, 5) << endl;
+    // VI rod = {2, 5, 7, 8, 10};
+    // cout << "Rod len " << cutRodR(rod, 5) << endl;
+    // cout << "Rod len " << cutRodM(rod, 5) << endl;
+    // cout << "Rod len " << cutRodT(rod, 5) << endl;
+    // cout << "Rod len " << cutRodSO(rod, 5) << endl;
+
+    string s1 = "abcde";
+    string s2 = "bcdgek";
+
+    // cout << "The Longest Common Subsequence is ";
+    // lcs(s1, s2);
+    // cout << "The Longest Common Substring is " << longestCommonSubstringT(s1, s2) << endl;
+    cout << "The Longest Common Substring is " << longestCommonSubstringSO(s1, s2) << endl;
 
     //  End code here-------->>
 

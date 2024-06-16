@@ -1,4 +1,1 @@
-Rod len 12
-Rod len 12
-Rod len 12
-Rod len 12
+The Longest Common Substring is 3
