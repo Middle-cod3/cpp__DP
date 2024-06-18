@@ -3846,13 +3846,19 @@ int longestCommonSubstringSO(string s1, string s2)
 }
 
 /*
-28.
-ANS :
+28.  Longest Palindromic Subsequence
+ANS : Given a string s, find the longest palindromic subsequence's length in s.
+A subsequence is a sequence that can be derived from another sequence by deleting some or no elements without changing the order of the remaining elements.
 Input :   || Output :
 */
+// #Bruteforce should be Generate all the subsequences then check for palindrome and pick the longest but its TC is going to exponential in nature so we're trying recursion but with some twirke
+
 // Bruteforce ------Recursion----->
 // TC :
 // SC :
+/*
+Intuition : As its check for palindrome we can observe from the string is if we reverse the string then we got 2 string and if we do LONGEST COMMON SUBSEQUENCES then we can do both palindrome and subsequence in a single logic
+*/
 // Better -----Memoization------>
 // TC :
 // SC :
@@ -3860,13 +3866,34 @@ Input :   || Output :
 // TC :
 // SC :
 // Most Optimal -----Space Optimization----->
-// TC :
-// SC :
+// TC : O(NxM)
+// SC :O(N+M)
+int longestPalindromeSubseqSO(string s)
+{
+    string t = s;
+    reverse(t.begin(), t.end());
+    return longestCommonSubsequenceSO(s, t);
+}
 
 /*
-29.
-ANS :
+29. Minimum Insertion Steps to Make a String Palindrome
+ANS : Given a string s. In one step you can insert any character at any index of the string.
+Return the minimum number of steps to make s palindrome.
+A Palindrome String is one that reads the same backward as well as forward.
 Input :   || Output :
+*/
+/*
+Intuition:
+We need to find the minimum insertions required to make a string palindrome.
+Let us keep the “minimum” criteria aside and think, how can we make any given string palindrome by inserting characters?
+The easiest way is to add the reverse of the string at the back of the original string as shown below. This will make any string palindrome.
+Here the number of characters inserted will be equal to n (length of the string). This is the maximum number of characters we can insert to make strings palindrome.
+The problem states us to find the minimum of insertions. Let us try to figure it out:
+To minimize the insertions, we will first try to refrain from adding those characters again which are already making the given string palindrome. For the given example, “aaa”, “aba”,”aca”, any of these are themselves palindromic components of the string. We can take any of them( as all are of equal length) and keep them intact. (let’s say “aaa”).
+Now, there are two characters(‘b’ and ‘c’) remaining which prevent the string from being a palindrome. We can reverse their order and add them to the string to make the entire string palindrome.
+We can do this by taking some other components (like “aca”) as well.
+In order to minimize the insertions, we need to find the length of the longest palindromic component or in other words, the longest palindromic subsequence.
+Minimum Insertion required = n(length of the string) - length of longest palindromic subsequence.
 */
 // Bruteforce ------Recursion----->
 // TC :
@@ -3878,12 +3905,26 @@ Input :   || Output :
 // TC :
 // SC :
 // Most Optimal -----Space Optimization----->
-// TC :
-// SC :
+// TC : O(Nxm)
+// SC :O(M)
+int minInsertionSO(string s)
+{
+    int n = SZ(s);
+    int k = longestPalindromeSubseqSO(s);
+
+    // The minimum insertions required is the difference between the string length and its longest palindromic subsequence length
+    return n - k;
+}
 
 /*
-30.
-ANS :
+30. Minimum Insertions/Deletions to Convert String
+ANS : Minimum Insertions/Deletions to Convert String A to String B
+
+We are given two strings, str1 and str2. We are allowed the following operations:
+
+Delete any number of characters from string str1.
+Insert any number of characters in string str1.
+We need to tell the minimum operations required to convert str1 to str2.
 Input :   || Output :
 */
 // Bruteforce ------Recursion----->
@@ -3896,8 +3937,19 @@ Input :   || Output :
 // TC :
 // SC :
 // Most Optimal -----Space Optimization----->
-// TC :
-// SC :
+// TC : O(Nxm)
+// SC :O(M)
+int canYouMakeSO(string str1, string str2)
+{
+    int n = SZ(str1);
+    int m = SZ(str2);
+
+    // Calculate the length of the longest common subsequence between str1 and str2
+    int k = longestCommonSubsequenceSO(str1, str2);
+
+    // Calculate the minimum operations required to convert str1 to str2
+    return (n - k) + (m - k);
+}
 /*
 31.
 ANS :
@@ -4124,13 +4176,16 @@ int main()
     // cout << "Rod len " << cutRodT(rod, 5) << endl;
     // cout << "Rod len " << cutRodSO(rod, 5) << endl;
 
-    string s1 = "abcde";
-    string s2 = "bcdgek";
+    string s1 = "abcd";
+    string s2 = "anc";
 
     // cout << "The Longest Common Subsequence is ";
     // lcs(s1, s2);
     // cout << "The Longest Common Substring is " << longestCommonSubstringT(s1, s2) << endl;
-    cout << "The Longest Common Substring is " << longestCommonSubstringSO(s1, s2) << endl;
+    // cout << "The Longest Common Substring is " << longestCommonSubstringSO(s1, s2) << endl;
+    // cout << "Longest common palindromic subsequences " << longestPalindromeSubseqSO(s1) << endl;
+    // cout<<"Mini Insertion to make palindrom is "<<minInsertionSO(s1)<<endl;
+    cout << "Insert and deletion " << canYouMakeSO(s1, s2) << endl;
 
     //  End code here-------->>
 
