@@ -174,7 +174,8 @@ Example given in Frog Jump redirect to 413 line
 1️⃣1️⃣ Shortcut trick for DP on String *******
 i. Express ind1 & ind2 (when it talk about 2 string its mean string 1= string[0...ind1] string 2 = string [0...ind2])
 ii. Explore possibilities on that index
-iii. Take the best amoung them
+iii. Take the best amoung them || Return summation of all possibilities
+iv. Write Base Case
 */
 
 /*##############################1D DP#################################*/
@@ -4042,22 +4043,165 @@ string shortestSupersequence(string s1, string s2)
 }
 
 /*
-32.
-ANS :
+32. Distinct Subsequences
+ANS : Given two strings s and t, return the number of distinct subsequences of s which equals t.
+The test cases are generated so that the answer fits on a 32-bit signed integer.
 Input :   || Output :
 */
 // Bruteforce ------Recursion----->
-// TC :
-// SC :
+// TC : Expponential
+// SC : O(n+m)
+int numDistinctRecr(string s1, string s2, int ind1, int ind2)
+{
+    // If s2 has been completely matched, return 1 (found a valid subsequence)
+    if (ind2 < 0)
+        return 1;
+
+    // If s1 has been completely traversed but s2 hasn't, return 0
+    if (ind1 < 0)
+        return 0;
+
+    int result = 0;
+
+    // If the characters match, consider two options: either leave one character in s1 and s2
+    // or leave one character in s1 and continue matching s2
+    if (s1[ind1] == s2[ind2])
+    {
+        int leaveOne = numDistinctRecr(s1, s2, ind1 - 1, ind2 - 1);
+        int stay = numDistinctRecr(s1, s2, ind1 - 1, ind2);
+
+        result = (leaveOne + stay) % mod;
+    }
+    else
+    {
+        // If characters don't match, just leave one character in s1 and continue matching s2
+        result = numDistinctRecr(s1, s2, ind1 - 1, ind2);
+    }
+
+    return result;
+}
+int numDistinctR(string s, string t)
+{
+    // Recursion
+    int n = SZ(s);
+    int m = SZ(t);
+    return numDistinctRecr(s, t, n - 1, m - 1);
+}
 // Better -----Memoization------>
-// TC :
-// SC :
+// Time Complexity: O(N*M)
+// Reason: There are N*M states therefore at max ‘N*M’ new problems will be solved.
+// Space Complexity: O(N*M) + O(N+M)
+// Reason: We are using a recursion stack space(O(N+M)) and a 2D array ( O(N*M)).
+int numDistinctMemo(string s, string t, int i, int j, VVI &dp)
+{
+    if (j == 0)
+        return 1;
+    if (i == 0)
+        return 0;
+    if (dp[i][j] != -1)
+        return dp[i][j];
+    int result = 0;
+    if (s[i - 1] == t[j - 1])
+    {
+        int leave = numDistinctMemo(s, t, i - 1, j - 1, dp);
+        int stay = numDistinctMemo(s, t, i - 1, j, dp);
+        result = (leave + stay) % mod;
+    }
+    else
+        result = numDistinctMemo(s, t, i - 1, j, dp);
+    dp[i][j] = result;
+    return result;
+}
+int numDistinctM(string s, string t)
+{
+    // Recursion
+    int n = SZ(s);
+    int m = SZ(t);
+    VVI dp(n + 1, VI(m + 1, -1));
+    return numDistinctMemo(s, t, n, m, dp);
+}
 // Optimal -----Tabulation----->
-// TC :
-// SC :
+// Time Complexity: O(N*M)
+// Reason: There are two nested loops
+// Space Complexity: O(N*M)
+// Reason: We are using an external array of size ‘N*M’. Stack Space is eliminated.
+int numDistinctT(string &s1, string &s2)
+{
+    int n = SZ(s1);
+    int m = SZ(s2);
+    // Create a 2D DP array to store the count of distinct subsequences
+    vector<vector<int>> dp(n + 1, vector<int>(m + 1, 0));
+
+    // Initialize the first row: empty string s2 can be matched with any non-empty s1 in one way
+    for (int i = 0; i <= n; i++)
+    {
+        dp[i][0] = 1;
+    }
+
+    // Initialize the first column: s1 can't match any non-empty s2
+    for (int i = 1; i <= m; i++)
+    {
+        dp[0][i] = 0;
+    }
+
+    // Fill in the DP array
+    for (int i = 1; i <= n; i++)
+    {
+        for (int j = 1; j <= m; j++)
+        {
+            if (s1[i - 1] == s2[j - 1])
+            {
+                // If the characters match, we have two options:
+                // 1. Match the current characters and move diagonally (dp[i-1][j-1])
+                // 2. Leave the current character in s1 and match s2 with the previous characters (dp[i-1][j])
+                dp[i][j] = (dp[i - 1][j - 1] + dp[i - 1][j]) % mod;
+            }
+            else
+            {
+                // If the characters don't match, we can only leave the current character in s1
+                dp[i][j] = dp[i - 1][j];
+            }
+        }
+    }
+
+    // The value at dp[n][m] contains the count of distinct subsequences
+    return dp[n][m];
+}
+
 // Most Optimal -----Space Optimization----->
-// TC :
-// SC :
+// Time Complexity: O(N*M)
+// Reason: There are two nested loops.
+// Space Complexity: O(M)
+// Reason: We are using an external array of size ‘M+1’ to store only one row.
+int numDistinctSO(string &s1, string &s2)
+{
+    int n = SZ(s1);
+    int m = SZ(s2);
+    // Create an array to store the count of distinct subsequences for each character in s2
+    vector<int> prev(m + 1, 0);
+
+    // Initialize the count for an empty string (base case)
+    prev[0] = 1;
+
+    // Iterate through s1 and s2 to calculate the counts
+    for (int i = 1; i <= n; i++)
+    {
+        for (int j = m; j >= 1; j--)
+        { // Iterate in reverse direction to avoid overwriting values prematurely
+            if (s1[i - 1] == s2[j - 1])
+            {
+                // If the characters match, we have two options:
+                // 1. Match the current characters and add to the previous count (prev[j-1])
+                // 2. Leave the current character in s1 and match s2 with the previous characters (prev[j])
+                prev[j] = (prev[j - 1] + prev[j]) % mod;
+            }
+            // No need for an else statement since we can simply leave the previous count as is
+        }
+    }
+
+    // The value at prev[m] contains the count of distinct subsequences
+    return prev[m];
+}
 
 /*
 33.
@@ -4249,8 +4393,8 @@ int main()
     // cout << "Rod len " << cutRodT(rod, 5) << endl;
     // cout << "Rod len " << cutRodSO(rod, 5) << endl;
 
-    string s1 = "brute";
-    string s2 = "groot";
+    // string s1 = "brute";
+    // string s2 = "groot";
 
     // cout << "The Longest Common Subsequence is ";
     // lcs(s1, s2);
@@ -4259,8 +4403,13 @@ int main()
     // cout << "Longest common palindromic subsequences " << longestPalindromeSubseqSO(s1) << endl;
     // cout<<"Mini Insertion to make palindrom is "<<minInsertionSO(s1)<<endl;
     // cout << "Insert and deletion " << canYouMakeSO(s1, s2) << endl;
-    cout<<"Shortes supersequence "<<shortestSupersequence(s1,s2)<<endl;
-
+    // cout << "Shortes supersequence " << shortestSupersequence(s1, s2) << endl;
+    string s = "rabbbit";
+    string t = "rabbit";
+    cout << "Distinct Subsequences " << numDistinctR(s, t) << endl;
+    cout << "Distinct Subsequences " << numDistinctM(s, t) << endl;
+    cout << "Distinct Subsequences " << numDistinctT(s, t) << endl;
+    cout << "Distinct Subsequences " << numDistinctSO(s, t) << endl;
     //  End code here-------->>
 
     return 0;
