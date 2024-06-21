@@ -4204,22 +4204,189 @@ int numDistinctSO(string &s1, string &s2)
 }
 
 /*
-33.
-ANS :
+33. Edit Distance
+ANS : Given two strings word1 and word2, return the minimum number of operations required to convert word1 to word2.
+You have the following three operations permitted on a word:
+Insert a character
+Delete a character
+Replace a character
 Input :   || Output :
 */
 // Bruteforce ------Recursion----->
-// TC :
-// SC :
+// TC : Exponentials in nature
+// SC : O(n+m)
+/*
+Intuition : If character is matching then i--,j-- else not matched then
+three choices we have:
+
+return 1+f(i-1,j) // Insertion of character.
+return 1+f(i,j-1) // Deletion of character.
+return 1+f(i-1,j-1) // Replacement of character.
+
+After that rerurn min of all cz we only need minimum operations.
+*/
+int editDistacnceRecr(int i, int j, string &word1, string &word2)
+{
+    // Base case :
+    if (i < 0)
+        return j + 1;
+    if (j < 0)
+        return i + 1;
+    int ans = 0;
+    if (word1[i] == word2[j])
+    {
+        ans = 0 + editDistacnceRecr(i - 1, j - 1, word1, word2);
+    }
+    else
+    {
+        // Minimum of three choices:
+        // 1. Replace the character at S1[i] with the character at S2[j]
+        // 2. Delete the character at S1[i]
+        // 3. Insert the character at S2[j] into S1
+        ans = 1 + min(editDistacnceRecr(i - 1, j - 1, word1, word2),
+                      min(editDistacnceRecr(i - 1, j, word1, word2),
+                          editDistacnceRecr(i, j - 1, word1, word2)));
+    }
+    return ans;
+}
+int editDistanceR(string word1, string word2)
+{
+    int n = SZ(word1);
+    int m = SZ(word2);
+    return editDistacnceRecr(n - 1, m - 1, word1, word2);
+}
 // Better -----Memoization------>
-// TC :
-// SC :
+// Time Complexity: O(N*M)
+// Reason: There are N*M states therefore at max ‘N*M’ new problems will be solved.
+// Space Complexity: O(N*M) + O(N+M)
+// Reason: We are using a recursion stack space(O(N+M)) and a 2D array ( O(N*M)).
+// # HERE WE DO 1-BASED INDEXING SO THAT NO NEGATIVE IN VAULT
+int editDistacnceMemo(int i, int j, string &word1, string &word2, VVI &dp)
+{
+    // Base case :
+    if (i == 0)
+        return j;
+    if (j == 0)
+        return i;
+    if (dp[i][j] != -1)
+        return dp[i][j];
+    int ans = 0;
+    if (word1[i - 1] == word2[j - 1])
+    {
+        ans = 0 + editDistacnceMemo(i - 1, j - 1, word1, word2, dp);
+    }
+    else
+    {
+        // Minimum of three choices:
+        // 1. Replace the character at S1[i] with the character at S2[j]
+        // 2. Delete the character at S1[i]
+        // 3. Insert the character at S2[j] into S1
+        ans = 1 + min(editDistacnceMemo(i - 1, j - 1, word1, word2, dp),
+                      min(editDistacnceMemo(i - 1, j, word1, word2, dp),
+                          editDistacnceMemo(i, j - 1, word1, word2, dp)));
+    }
+    return dp[i][j] = ans;
+}
+int editDistanceM(string word1, string word2)
+{
+    int n = SZ(word1);
+    int m = SZ(word2);
+    VVI dp(n + 1, VI(m + 1, -1));
+    return editDistacnceMemo(n, m, word1, word2, dp);
+}
 // Optimal -----Tabulation----->
-// TC :
-// SC :
+// Time Complexity: O(N*M)
+// Reason: There are two nested loops
+// Space Complexity: O(N*M)
+// Reason: We are using an external array of size ‘N*M’. Stack Space is eliminated.
+int editDistanceT(string &S1, string &S2)
+{
+    int n = S1.size();
+    int m = S2.size();
+
+    // Create a DP table to store edit distances
+    vector<vector<int>> dp(n + 1, vector<int>(m + 1, 0));
+
+    // Initialize the first row and column
+    for (int i = 0; i <= n; i++)
+    {
+        dp[i][0] = i;
+    }
+    for (int j = 0; j <= m; j++)
+    {
+        dp[0][j] = j;
+    }
+
+    // Fill in the DP table
+    for (int i = 1; i <= n; i++)
+    {
+        for (int j = 1; j <= m; j++)
+        {
+            if (S1[i - 1] == S2[j - 1])
+            {
+                // If the characters match, no additional cost
+                dp[i][j] = dp[i - 1][j - 1];
+            }
+            else
+            {
+                // Minimum of three choices:
+                // 1. Replace the character at S1[i-1] with S2[j-1]
+                // 2. Delete the character at S1[i-1]
+                // 3. Insert the character at S2[j-1] into S1
+                dp[i][j] = 1 + min(dp[i - 1][j - 1], min(dp[i - 1][j], dp[i][j - 1]));
+            }
+        }
+    }
+
+    // The value at dp[n][m] contains the edit distance
+    return dp[n][m];
+}
 // Most Optimal -----Space Optimization----->
-// TC :
-// SC :
+// Time Complexity: O(N*M)
+// Reason: There are two nested loops.
+// Space Complexity: O(M)
+// Reason: We are using an external array of size ‘M+1’ to store two rows.
+int editDistanceSO(string &S1, string &S2)
+{
+    int n = S1.size();
+    int m = S2.size();
+
+    // Create two arrays to store previous and current row of edit distances
+    vector<int> prev(m + 1, 0);
+    vector<int> cur(m + 1, 0);
+
+    // Initialize the first row
+    for (int j = 0; j <= m; j++)
+    {
+        prev[j] = j;
+    }
+
+    // Calculate edit distances row by row
+    for (int i = 1; i <= n; i++)
+    {
+        cur[0] = i; // Initialize the first column of the current row
+        for (int j = 1; j <= m; j++)
+        {
+            if (S1[i - 1] == S2[j - 1])
+            {
+                // If the characters match, no additional cost
+                cur[j] = prev[j - 1];
+            }
+            else
+            {
+                // Minimum of three choices:
+                // 1. Replace the character at S1[i-1] with S2[j-1]
+                // 2. Delete the character at S1[i-1]
+                // 3. Insert the character at S2[j-1] into S1
+                cur[j] = 1 + min(prev[j - 1], min(prev[j], cur[j - 1]));
+            }
+        }
+        prev = cur; // Update the previous row with the current row
+    }
+
+    // The value at cur[m] contains the edit distance
+    return cur[m];
+}
 
 /*
 34.
@@ -4404,12 +4571,16 @@ int main()
     // cout<<"Mini Insertion to make palindrom is "<<minInsertionSO(s1)<<endl;
     // cout << "Insert and deletion " << canYouMakeSO(s1, s2) << endl;
     // cout << "Shortes supersequence " << shortestSupersequence(s1, s2) << endl;
-    string s = "rabbbit";
-    string t = "rabbit";
-    cout << "Distinct Subsequences " << numDistinctR(s, t) << endl;
-    cout << "Distinct Subsequences " << numDistinctM(s, t) << endl;
-    cout << "Distinct Subsequences " << numDistinctT(s, t) << endl;
-    cout << "Distinct Subsequences " << numDistinctSO(s, t) << endl;
+    string s = "horse";
+    string t = "ros";
+    // cout << "Distinct Subsequences " << numDistinctR(s, t) << endl;
+    // cout << "Distinct Subsequences " << numDistinctM(s, t) << endl;
+    // cout << "Distinct Subsequences " << numDistinctT(s, t) << endl;
+    // cout << "Distinct Subsequences " << numDistinctSO(s, t) << endl;
+    cout << "Edited distance is R " << editDistanceR(s, t) << endl;
+    cout << "Edited distance is M " << editDistanceM(s, t) << endl;
+    cout << "Edited distance is T " << editDistanceT(s, t) << endl;
+    cout << "Edited distance is SO " << editDistanceSO(s, t) << endl;
     //  End code here-------->>
 
     return 0;
