@@ -176,6 +176,9 @@ i. Express ind1 & ind2 (when it talk about 2 string its mean string 1= string[0.
 ii. Explore possibilities on that index
 iii. Take the best amoung them || Return summation of all possibilities
 iv. Write Base Case
+
+1️⃣2️⃣ Why we're doing 0-based to 1-based indexing in String Memoization problems?
+-->>As we're checking for negative index in 0-based indexing it will take lill time so we converted it to 1-based and checking upto i==0 so we're not going beyond 0 and its save time lill.
 */
 
 /*##############################1D DP#################################*/
@@ -4389,22 +4392,189 @@ int editDistanceSO(string &S1, string &S2)
 }
 
 /*
-34.
-ANS :
+34. Wildcard Matching
+ANS : Given a text and a wildcard pattern of size N and M respectively, implement a wildcard pattern matching algorithm that finds if the wildcard pattern is matched with the text. The matching should cover the entire text not partial text.
+The wildcard pattern can include the characters ‘?’ and ‘*’
+ ‘?’ – matches any single character
+ ‘*’ – Matches any sequence of characters(sequence can be of length 0 or more)
 Input :   || Output :
 */
 // Bruteforce ------Recursion----->
-// TC :
-// SC :
+// TC : Exponential in nature
+// SC :O(N+M)
+bool wildcardMatchingRecr(int i, int j, string &p, string &t)
+{
+    if (i < 0 && j < 0)
+        return true;
+    if (i < 0 && j >= 0)
+        return false;
+    ;
+    if (j < 0 && i >= 0)
+    {
+        FORE(ii, i)
+        {
+            if (p[ii] != '*')
+                return false;
+        }
+        return true;
+    }
+    if (p[i] == t[j] || p[i] == '?')
+        return wildcardMatchingRecr(i - 1, j - 1, p, t);
+    if (p[i] == '*')
+    {
+        return wildcardMatchingRecr(i - 1, j, p, t) || wildcardMatchingRecr(i, j - 1, p, t);
+    }
+    return false;
+}
+bool wildcardMatchingR(string p, string t)
+{
+    int n = SZ(p);
+    int m = SZ(t);
+    return wildcardMatchingRecr(n - 1, m - 1, p, t);
+}
+
 // Better -----Memoization------>
-// TC :
-// SC :
+// Time Complexity: O(N*M)
+// Reason: There are N*M states therefore at max ‘N*M’ new problems will be solved.
+// Space Complexity: O(N*M) + O(N+M)
+// Reason: We are using a recursion stack space(O(N+M)) and a 2D array ( O(N*M)).
+
+bool wildcardMatchingMemo(int i, int j, string &p, string &t, VVI &dp)
+{
+    if (i == 0 && j == 0)
+        return true;
+    if (i == 0 && j > 0)
+        return false;
+    ;
+    if (j == 0 && i > 0)
+    {
+        FORE(ii, i)
+        {
+            if (p[ii - 1] != '*')
+                return false;
+        }
+        return true;
+    }
+    if (dp[i][j] != -1)
+        return dp[i][j];
+    if (p[i - 1] == t[j - 1] || p[i - 1] == '?')
+        return dp[i][j] = wildcardMatchingMemo(i - 1, j - 1, p, t, dp);
+    if (p[i - 1] == '*')
+    {
+        return dp[i][j] = wildcardMatchingMemo(i - 1, j, p, t, dp) || wildcardMatchingMemo(i, j - 1, p, t, dp);
+    }
+    return false;
+}
+bool wildcardMatchingM(string p, string t)
+{
+    int n = SZ(p);
+    int m = SZ(t);
+    VVI dp(n + 1, VI(m + 1, -1));
+    return wildcardMatchingMemo(n, m, p, t, dp); // 1-based indexing
+}
 // Optimal -----Tabulation----->
-// TC :
-// SC :
+// Time Complexity: O(N*M)
+// Reason: There are two nested loops
+// Space Complexity: O(N*M)
+// Reason: We are using an external array of size ‘N*M’. Stack Space is eliminated.
+bool isAllStars(string &S1, int i)
+{
+    // S1 is taken in 1-based indexing
+    for (int j = 1; j <= i; j++)
+    {
+        if (S1[j - 1] != '*')
+            return false;
+    }
+    return true;
+}
+bool wildcardMatchingT(string S1, string S2)
+{
+    int n = S1.size();
+    int m = S2.size();
+
+    // Create a DP table to memoize results
+    vector<vector<bool>> dp(n + 1, vector<bool>(m, false));
+
+    // Initialize the first row and column
+    dp[0][0] = true;
+    for (int j = 1; j <= m; j++)
+    {
+        dp[0][j] = false;
+    }
+    for (int i = 1; i <= n; i++)
+    {
+        dp[i][0] = isAllStars(S1, i);
+    }
+
+    // Fill in the DP table
+    for (int i = 1; i <= n; i++)
+    {
+        for (int j = 1; j <= m; j++)
+        {
+            if (S1[i - 1] == S2[j - 1] || S1[i - 1] == '?')
+            {
+                dp[i][j] = dp[i - 1][j - 1];
+            }
+            else
+            {
+                if (S1[i - 1] == '*')
+                {
+                    dp[i][j] = dp[i - 1][j] || dp[i][j - 1];
+                }
+                else
+                {
+                    dp[i][j] = false;
+                }
+            }
+        }
+    }
+
+    // The value at dp[n][m] contains whether S1 matches S2
+    return dp[n][m];
+}
 // Most Optimal -----Space Optimization----->
-// TC :
-// SC :
+// Time Complexity: O(N*M)
+// Reason: There are two nested loops.
+// Space Complexity: O(M)
+// Reason: We are using an external array of size ‘M+1’ to store two rows.
+bool wildcardMatchingSO(string &S1, string &S2)
+{
+    int n = S1.size();
+    int m = S2.size();
+
+    // Create two arrays to store previous and current rows of matching results
+    vector<bool> prev(m + 1, false);
+    vector<bool> cur(m + 1, false);
+
+    prev[0] = true; // Initialize the first element of the previous row to true
+
+    for (int i = 1; i <= n; i++)
+    {
+        cur[0] = isAllStars(S1, i); // Initialize the first element of the current row
+        for (int j = 1; j <= m; j++)
+        {
+            if (S1[i - 1] == S2[j - 1] || S1[i - 1] == '?')
+            {
+                cur[j] = prev[j - 1]; // Characters match or S1 has '?'
+            }
+            else
+            {
+                if (S1[i - 1] == '*')
+                {
+                    cur[j] = prev[j] || cur[j - 1]; // '*' represents empty or a character
+                }
+                else
+                {
+                    cur[j] = false; // Characters don't match and S1[i-1] is not '*'
+                }
+            }
+        }
+        prev = cur; // Update the previous row with the current row
+    }
+
+    // The value at prev[m] contains whether S1 matches S2
+    return prev[m];
+}
 
 /*
 35.
@@ -4571,16 +4741,20 @@ int main()
     // cout<<"Mini Insertion to make palindrom is "<<minInsertionSO(s1)<<endl;
     // cout << "Insert and deletion " << canYouMakeSO(s1, s2) << endl;
     // cout << "Shortes supersequence " << shortestSupersequence(s1, s2) << endl;
-    string s = "horse";
-    string t = "ros";
+    string p = "a*at";
+    string s = "chat";
     // cout << "Distinct Subsequences " << numDistinctR(s, t) << endl;
     // cout << "Distinct Subsequences " << numDistinctM(s, t) << endl;
     // cout << "Distinct Subsequences " << numDistinctT(s, t) << endl;
     // cout << "Distinct Subsequences " << numDistinctSO(s, t) << endl;
-    cout << "Edited distance is R " << editDistanceR(s, t) << endl;
-    cout << "Edited distance is M " << editDistanceM(s, t) << endl;
-    cout << "Edited distance is T " << editDistanceT(s, t) << endl;
-    cout << "Edited distance is SO " << editDistanceSO(s, t) << endl;
+    // cout << "Edited distance is R " << editDistanceR(s, t) << endl;
+    // cout << "Edited distance is M " << editDistanceM(s, t) << endl;
+    // cout << "Edited distance is T " << editDistanceT(s, t) << endl;
+    // cout << "Edited distance is SO " << editDistanceSO(s, t) << endl;
+    cout << "Is matching " << wildcardMatchingR(p, s) << endl;
+    cout << "Is matching " << wildcardMatchingM(p, s) << endl;
+    cout << "Is matching " << wildcardMatchingT(p, s) << endl;
+    cout << "Is matching " << wildcardMatchingSO(p, s) << endl;
     //  End code here-------->>
 
     return 0;
