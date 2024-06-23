@@ -4576,14 +4576,37 @@ bool wildcardMatchingSO(string &S1, string &S2)
     return prev[m];
 }
 
+/*##############################DP ON STOCKS#################################*/
 /*
-35.
-ANS :
+35. Best Time to Buy and Sell Stock
+ANS :  You are given an array prices where prices[i] is the price of a given stock on the ith day.
+
+You want to maximize your profit by choosing a single day to buy one stock and choosing a different day in the future to sell that stock.
+
+Return the maximum profit you can achieve from this transaction. If you cannot achieve any profit, return 0.
 Input :   || Output :
 */
 // Bruteforce ------Recursion----->
-// TC :
-// SC :
+// TC :O(N)
+// SC :O(1)
+/*
+Intuition : If you're selling it on i-th day,you buy on the minimum price from 1st->(i-1)
+*/
+int maxProfit(vector<int> &prices)
+{
+    int n = SZ(prices);
+    if (n == 1)
+        return 0;
+    int mini = prices[0];
+    int maxProfit = 0;
+    for (int i = 1; i < n; i++)
+    {
+        int cost = prices[i] - mini;
+        maxProfit = max(maxProfit, cost);
+        mini = min(mini, prices[i]);
+    };
+    return maxProfit;
+}
 // Better -----Memoization------>
 // TC :
 // SC :
@@ -4594,6 +4617,548 @@ Input :   || Output :
 // TC :
 // SC :
 
+/*
+36. Buy and Sell Stock - II
+ANS : You are given an integer array prices where prices[i] is the price of a given stock on the ith day.
+On each day, you may decide to buy and/or sell the stock. You can only hold at most one share of the stock at any time. However, you can buy it then immediately sell it on the same day.
+Find and return the maximum profit you can achieve.
+Input :   || Output :
+*/
+// Bruteforce -----Recursion------>
+// Time Complexity: O(2^N)
+// Reason: We are running a for loop for ‘N’ times to calculate the total sum
+// Space Complexity: O(N)
+// Reason: We are using a recursion stack space(O(N))
+/*
+Intuition : Every day, we will have two choices, either to do nothing and move to the next day or to buy/sell (based on the last transaction) and find out the profit. Therefore we need to generate all the choices in order to compare the profit. As we need to try out all the possible choices, we will use recursion.
+we need to respect the condition that we can’t buy a stock again, that is we need to first sell a stock, and then we can buy that again. Therefore we need a second variable ‘buy’ which tells us on a particular day whether we can buy or sell the stock.
+Generate all choices :
+Case 1: When buy == 0, we can buy the stock.
+
+If we can buy the stock on a particular day, we have two options:
+
+Option 1: To do no transaction and move to the next day. In this case, the net profit earned will be 0 from the current transaction, and to calculate the maximum profit starting from the next day, we will recursively call f(ind+1,0). As we have not bought the stock, the ‘buy’ variable value will still remain 0, indicating that we can buy the stock the next day.
+Option 2: The other option is to buy the stock on the current day. In this case, the net profit earned from the current transaction will be -Arr[i]. As we are buying the stock, we are giving money out of our pocket, therefore the profit we earn is negative. To calculate the maximum profit starting from the next day, we will recursively call f(ind+1,1). As we have bought the stock, the ‘buy’ variable value will change to 1, indicating that we can’t buy and only sell the stock the next day.
+Case 2: When buy == 1, we can sell the stock.
+
+If we can buy the stock on a particular day, we have two options:
+
+Option 1: To do no transaction and move to the next day. In this case, the net profit earned will be 0 from the current transaction, and to calculate the maximum profit starting from the next day, we will recursively call f(ind+1,1). As we have not bought the stock, the ‘buy’ variable value will still remain at 1, indicating that we can’t buy and only sell the stock the next day.
+Option 2: The other option is to sell the stock on the current day. In this case, the net profit earned from the current transaction will be +Arr[i]. As we are selling the stock, we are putting the money into our pocket, therefore the profit we earn is positive. To calculate the maximum profit starting from the next day, we will recursively call f(ind+1,0). As we have sold the stock, the ‘buy’ variable value will change to 0, indicating that we can buy the stock the next day.
+
+*/
+int maxProfitRecr(int ind, VI &prices, int buy)
+{
+    int n = SZ(prices);
+    // Base Case :
+    if (ind == n)
+        return 0;
+    int profit = 0;
+    if (buy)
+    {
+        // Max of pick and notPick
+        // If we but on first day then we can sell with 0 if we not buy on first day then we can buy=1
+        profit = max(-prices[ind] + maxProfitRecr(ind + 1, prices, 0), 0 + maxProfitRecr(ind + 1, prices, 1));
+    }
+    else
+        profit = max(prices[ind] + maxProfitRecr(ind + 1, prices, 1), 0 + maxProfitRecr(ind + 1, prices, 0));
+    return profit;
+}
+int maxProfitR(vector<int> &prices)
+{
+    int buy = 1;
+    return maxProfitRecr(0, prices, buy);
+}
+// Better ------Memoization----->
+// Time Complexity: O(N*2)
+// Reason: There are N*2 states therefore at max ‘N*2’ new problems will be solved and we are running a for loop for ‘N’ times to calculate the total sum
+// Space Complexity: O(N*2) + O(N)
+// Reason: We are using a recursion stack space(O(N)) and a 2D array ( O(N*2)).
+int maxProfitMemo(int ind, VI &prices, int buy, VVI &dp)
+{
+    int n = SZ(prices);
+    // Base Case :
+    if (ind == n)
+        return 0;
+    if (dp[ind][buy] != -1)
+        return dp[ind][buy];
+    int profit = 0;
+    if (buy)
+    {
+        // Max of pick and notPick
+        // If we but on first day then we can sell with 0 if we not buy on first day then we can buy=1
+        profit = max(-prices[ind] + maxProfitMemo(ind + 1, prices, 0, dp), 0 + maxProfitMemo(ind + 1, prices, 1, dp));
+    }
+    else
+        profit = max(prices[ind] + maxProfitMemo(ind + 1, prices, 1, dp), 0 + maxProfitMemo(ind + 1, prices, 0, dp));
+    return dp[ind][buy] = profit;
+}
+int maxProfitM(vector<int> &prices)
+{
+    int n = SZ(prices);
+    int buy = 1;
+    VVI dp(n, VI(2, -1));
+    return maxProfitMemo(0, prices, buy, dp);
+}
+// Optimal -----Tabulation----->
+// Time Complexity: O(N*2)
+// Reason: There are two nested loops that account for O(N*2) complexity.
+// Space Complexity: O(N*2)
+// Reason: We are using an external array of size ‘N*2’. Stack Space is eliminated.
+/*
+First go for base case then
+check for changing params like ind and buy
+Then copy the recursion
+*/
+int maxProfitT(vector<int> &prices)
+{
+    int n = SZ(prices);
+    int buy = 1;
+    VVI dp(n + 1, VI(2, 0));
+    // Base case :
+    dp[n][0] = dp[n][1] = 0; // As (ind==n) return 0
+    // Changing params loop and here Tabulation is Buttom-Up
+    for (int ind = n - 1; ind >= 0; ind--)
+    {                                      // First changing param
+        for (int buy = 0; buy <= 1; buy++) // Second changing param
+        {
+            int profit = 0;
+            if (buy)
+            {
+                // Max of pick and notPick
+                // If we but on first day then we can sell with 0 if we not buy on first day then we can buy=1
+                profit = max(-prices[ind] + dp[ind + 1][0], 0 + dp[ind + 1][1]);
+            }
+            else
+                profit = max(prices[ind] + dp[ind + 1][1], 0 + dp[ind + 1][0]);
+            dp[ind][buy] = profit;
+        }
+    }
+    return dp[0][1];
+}
+// Most Optimal -----Space Optimization----->
+// TC :O(N*2)
+// SC :O(1)
+int maxProfitSO(vector<int> &prices)
+{
+    int n = SZ(prices);
+    VI ahead(2, 0), cur(2, 0);
+    // Base case :
+    ahead[0] = ahead[1] = 0; // As (ind==n) return 0
+    // Changing params loop and here Tabulation is Buttom-Up
+    for (int ind = n - 1; ind >= 0; ind--)
+    {                                      // First changing param
+        for (int buy = 0; buy <= 1; buy++) // Second changing param
+        {
+            int profit = 0;
+            if (buy)
+            {
+                // Max of pick and notPick
+                // If we but on first day then we can sell with 0 if we not buy on first day then we can buy=1
+                profit = max(-prices[ind] + ahead[0], 0 + ahead[1]);
+            }
+            else
+                profit = max(prices[ind] + ahead[1], 0 + ahead[0]);
+            cur[buy] = profit;
+        }
+        ahead = cur;
+    }
+    return ahead[1];
+}
+// Most Optimal -----Variable Optimization----->
+// TC :O(N*2)
+// SC :O(1)
+int maxProfitVO(vector<int> &prices)
+{
+    int n = SZ(prices);
+    int aheadNotBuy, aheadBuy, curBuy, curNotBuy;
+    aheadBuy = aheadNotBuy = 0;
+    for (int ind = n - 1; ind >= 0; ind--)
+    {
+        curNotBuy = max(prices[ind] + aheadBuy, 0 + aheadNotBuy);
+        curBuy = max(-prices[ind] + aheadNotBuy, 0 + aheadBuy);
+        aheadBuy = curBuy;
+        aheadNotBuy = curNotBuy;
+    }
+    return aheadBuy;
+}
+
+/*
+37.
+ANS :
+Input :   || Output :
+*/
+// Bruteforce -----Recursion------>
+// TC :
+// SC :
+// Better ------Memoization----->
+// TC :
+// SC :
+// Optimal -----Tabulation----->
+// TC :
+// SC :
+// Most Optimal -----Space Optimization----->
+// TC :
+// SC :
+
+/*
+38.
+ANS :
+Input :   || Output :
+*/
+// Bruteforce -----Recursion------>
+// TC :
+// SC :
+// Better ------Memoization----->
+// TC :
+// SC :
+// Optimal -----Tabulation----->
+// TC :
+// SC :
+// Most Optimal -----Space Optimization----->
+// TC :
+// SC :
+
+/*
+39.
+ANS :
+Input :   || Output :
+*/
+// Bruteforce -----Recursion------>
+// TC :
+// SC :
+// Better ------Memoization----->
+// TC :
+// SC :
+// Optimal -----Tabulation----->
+// TC :
+// SC :
+// Most Optimal -----Space Optimization----->
+// TC :
+// SC :
+
+/*
+40.
+ANS :
+Input :   || Output :
+*/
+// Bruteforce -----Recursion------>
+// TC :
+// SC :
+// Better ------Memoization----->
+// TC :
+// SC :
+// Optimal -----Tabulation----->
+// TC :
+// SC :
+// Most Optimal -----Space Optimization----->
+// TC :
+// SC :
+/*
+41.
+ANS :
+Input :   || Output :
+*/
+// Bruteforce -----Recursion------>
+// TC :
+// SC :
+// Better ------Memoization----->
+// TC :
+// SC :
+// Optimal -----Tabulation----->
+// TC :
+// SC :
+// Most Optimal -----Space Optimization----->
+// TC :
+// SC :
+
+/*
+42.
+ANS :
+Input :   || Output :
+*/
+// Bruteforce -----Recursion------>
+// TC :
+// SC :
+// Better ------Memoization----->
+// TC :
+// SC :
+// Optimal -----Tabulation----->
+// TC :
+// SC :
+// Most Optimal -----Space Optimization----->
+// TC :
+// SC :
+
+/*
+43.
+ANS :
+Input :   || Output :
+*/
+// Bruteforce -----Recursion------>
+// TC :
+// SC :
+// Better ------Memoization----->
+// TC :
+// SC :
+// Optimal -----Tabulation----->
+// TC :
+// SC :
+// Most Optimal -----Space Optimization----->
+// TC :
+// SC :
+
+/*
+44.
+ANS :
+Input :   || Output :
+*/
+// Bruteforce -----Recursion------>
+// TC :
+// SC :
+// Better ------Memoization----->
+// TC :
+// SC :
+// Optimal -----Tabulation----->
+// TC :
+// SC :
+// Most Optimal -----Space Optimization----->
+// TC :
+// SC :
+
+/*
+45.
+ANS :
+Input :   || Output :
+*/
+// Bruteforce -----Recursion------>
+// TC :
+// SC :
+// Better ------Memoization----->
+// TC :
+// SC :
+// Optimal -----Tabulation----->
+// TC :
+// SC :
+// Most Optimal -----Space Optimization----->
+// TC :
+// SC :
+
+/*
+46.
+ANS :
+Input :   || Output :
+*/
+// Bruteforce -----Recursion------>
+// TC :
+// SC :
+// Better ------Memoization----->
+// TC :
+// SC :
+// Optimal -----Tabulation----->
+// TC :
+// SC :
+// Most Optimal -----Space Optimization----->
+// TC :
+// SC :
+
+/*
+47.
+ANS :
+Input :   || Output :
+*/
+// Bruteforce -----Recursion------>
+// TC :
+// SC :
+// Better ------Memoization----->
+// TC :
+// SC :
+// Optimal -----Tabulation----->
+// TC :
+// SC :
+// Most Optimal -----Space Optimization----->
+// TC :
+// SC :
+
+/*
+48.
+ANS :
+Input :   || Output :
+*/
+// Bruteforce -----Recursion------>
+// TC :
+// SC :
+// Better ------Memoization----->
+// TC :
+// SC :
+// Optimal -----Tabulation----->
+// TC :
+// SC :
+// Most Optimal -----Space Optimization----->
+// TC :
+// SC :
+
+/*
+49.
+ANS :
+Input :   || Output :
+*/
+// Bruteforce -----Recursion------>
+// TC :
+// SC :
+// Better ------Memoization----->
+// TC :
+// SC :
+// Optimal -----Tabulation----->
+// TC :
+// SC :
+// Most Optimal -----Space Optimization----->
+// TC :
+// SC :
+
+/*
+50.
+ANS :
+Input :   || Output :
+*/
+// Bruteforce -----Recursion------>
+// TC :
+// SC :
+// Better ------Memoization----->
+// TC :
+// SC :
+// Optimal -----Tabulation----->
+// TC :
+// SC :
+// Most Optimal -----Space Optimization----->
+// TC :
+// SC :
+
+/*
+51.
+ANS :
+Input :   || Output :
+*/
+// Bruteforce -----Recursion------>
+// TC :
+// SC :
+// Better ------Memoization----->
+// TC :
+// SC :
+// Optimal -----Tabulation----->
+// TC :
+// SC :
+// Most Optimal -----Space Optimization----->
+// TC :
+// SC :
+
+/*
+52.
+ANS :
+Input :   || Output :
+*/
+// Bruteforce -----Recursion------>
+// TC :
+// SC :
+// Better ------Memoization----->
+// TC :
+// SC :
+// Optimal -----Tabulation----->
+// TC :
+// SC :
+// Most Optimal -----Space Optimization----->
+// TC :
+// SC :
+
+/*
+53.
+ANS :
+Input :   || Output :
+*/
+// Bruteforce -----Recursion------>
+// TC :
+// SC :
+// Better ------Memoization----->
+// TC :
+// SC :
+// Optimal -----Tabulation----->
+// TC :
+// SC :
+// Most Optimal -----Space Optimization----->
+// TC :
+// SC :
+
+/*
+54.
+ANS :
+Input :   || Output :
+*/
+// Bruteforce -----Recursion------>
+// TC :
+// SC :
+// Better ------Memoization----->
+// TC :
+// SC :
+// Optimal -----Tabulation----->
+// TC :
+// SC :
+// Most Optimal -----Space Optimization----->
+// TC :
+// SC :
+
+/*
+55.
+ANS :
+Input :   || Output :
+*/
+// Bruteforce -----Recursion------>
+// TC :
+// SC :
+// Better ------Memoization----->
+// TC :
+// SC :
+// Optimal -----Tabulation----->
+// TC :
+// SC :
+// Most Optimal -----Space Optimization----->
+// TC :
+// SC :
+
+/*
+56.
+ANS :
+Input :   || Output :
+*/
+// Bruteforce -----Recursion------>
+// TC :
+// SC :
+// Better ------Memoization----->
+// TC :
+// SC :
+// Optimal -----Tabulation----->
+// TC :
+// SC :
+// Most Optimal -----Space Optimization----->
+// TC :
+// SC :
+
+/*
+57.
+ANS :
+Input :   || Output :
+*/
+// Bruteforce -----Recursion------>
+// TC :
+// SC :
+// Better ------Memoization----->
+// TC :
+// SC :
+// Optimal -----Tabulation----->
+// TC :
+// SC :
+// Most Optimal -----Space Optimization----->
+// TC :
+// SC :
 // ================================MAIN START=================================>>
 int main()
 {
@@ -4741,8 +5306,8 @@ int main()
     // cout<<"Mini Insertion to make palindrom is "<<minInsertionSO(s1)<<endl;
     // cout << "Insert and deletion " << canYouMakeSO(s1, s2) << endl;
     // cout << "Shortes supersequence " << shortestSupersequence(s1, s2) << endl;
-    string p = "a*at";
-    string s = "chat";
+    // string p = "a*at";
+    // string s = "chat";
     // cout << "Distinct Subsequences " << numDistinctR(s, t) << endl;
     // cout << "Distinct Subsequences " << numDistinctM(s, t) << endl;
     // cout << "Distinct Subsequences " << numDistinctT(s, t) << endl;
@@ -4751,10 +5316,16 @@ int main()
     // cout << "Edited distance is M " << editDistanceM(s, t) << endl;
     // cout << "Edited distance is T " << editDistanceT(s, t) << endl;
     // cout << "Edited distance is SO " << editDistanceSO(s, t) << endl;
-    cout << "Is matching " << wildcardMatchingR(p, s) << endl;
-    cout << "Is matching " << wildcardMatchingM(p, s) << endl;
-    cout << "Is matching " << wildcardMatchingT(p, s) << endl;
-    cout << "Is matching " << wildcardMatchingSO(p, s) << endl;
+    // cout << "Is matching " << wildcardMatchingR(p, s) << endl;
+    // cout << "Is matching " << wildcardMatchingM(p, s) << endl;
+    // cout << "Is matching " << wildcardMatchingT(p, s) << endl;
+    // cout << "Is matching " << wildcardMatchingSO(p, s) << endl;
+    VI prices = {7, 1, 5, 3, 6, 4};
+    cout << "Max profit " << maxProfitR(prices) << endl;
+    cout << "Max profit " << maxProfitM(prices) << endl;
+    cout << "Max profit " << maxProfitT(prices) << endl;
+    cout << "Max profit " << maxProfitSO(prices) << endl;
+    cout << "Max profit " << maxProfitVO(prices) << endl;
     //  End code here-------->>
 
     return 0;
