@@ -4619,7 +4619,7 @@ int maxProfitI(vector<int> &prices)
 // SC :
 
 /*
-36. Buy and Sell Stock - IIII
+36. Buy and Sell Stock - II
 ANS : You are given an integer array prices where prices[i] is the price of a given stock on the ith day.
 On each day, you may decide to buy and/or sell the stock. You can only hold at most one share of the stock at any time. However, you can buy it then immediately sell it on the same day.
 Find and return the maximum profit you can achieve.
@@ -5047,22 +5047,117 @@ int maxProfitIIItSO(vector<int> &prices, int k)
 }
 
 /*
-39.
-ANS :
+39. Best Time to Buy and Sell Stock with Cooldown
+ANS : You are given an array prices where prices[i] is the price of a given stock on the ith day.
+Find the maximum profit you can achieve. You may complete as many transactions as you like (i.e., buy one and sell one share of the stock multiple times) with the following restrictions:
+After you sell your stock, you cannot buy stock on the next day (i.e., cooldown one day).
+Note: You may not engage in multiple transactions simultaneously (i.e., you must sell the stock before you buy again).
 Input :   || Output :
 */
 // Bruteforce -----Recursion------>
-// TC :
-// SC :
+// Time Complexity: O(2^N)
+// Reason: We are running a for loop for ‘N’ times to calculate the total sum
+// Space Complexity: O(N)
+// Reason: We are using a recursion stack space(O(N))
+int maxProfitCoolRecr(int ind, VI &prices, int buy)
+{
+    int n = SZ(prices);
+    // Base Case :
+    if (ind >= n) // Here we do >= as we're  doing ind+2 assume that we're at ind==n-1 so thats why
+        return 0;
+    int profit = 0;
+    if (buy)
+    {
+        // Max of pick and notPick
+        // If we but on first day then we can sell with 0 if we not buy on
+        // first day then we can buy=1
+        profit = max(-prices[ind] + maxProfitCoolRecr(ind + 1, prices, 0),
+                     0 + maxProfitCoolRecr(ind + 1, prices, 1));
+    }
+    else
+        profit = max(prices[ind] + maxProfitCoolRecr(ind + 2, prices, 1),
+                     0 + maxProfitCoolRecr(ind + 1, prices, 0));
+    return profit;
+}
+
+int maxProfitCoolR(vector<int> &prices)
+{
+    int buy = 1;
+    return maxProfitCoolRecr(0, prices, buy);
+}
 // Better ------Memoization----->
-// TC :
-// SC :
+// Time Complexity: O(N*2)
+// Reason: There are N*2 states therefore at max ‘N*2’ new problems will be solved and we are running a for loop for ‘N’ times to calculate the total sum
+// Space Complexity: O(N*2) + O(N)
+// Reason: We are using a recursion stack space(O(N)) and a 2D array ( O(N*2)).
+int maxProfitCoolMemo(int ind, VI &prices, int buy, VVI &dp)
+{
+    int n = SZ(prices);
+    // Base Case :
+    if (ind >= n)
+        return 0;
+    if (dp[ind][buy] != -1)
+        return dp[ind][buy];
+    int profit = 0;
+    if (buy)
+    {
+        // Max of pick and notPick
+        // If we but on first day then we can sell with 0 if we not buy on first day then we can buy=1
+        profit = max(-prices[ind] + maxProfitCoolMemo(ind + 1, prices, 0, dp), 0 + maxProfitCoolMemo(ind + 1, prices, 1, dp));
+    }
+    else
+        profit = max(prices[ind] + maxProfitCoolMemo(ind + 2, prices, 1, dp), 0 + maxProfitCoolMemo(ind + 1, prices, 0, dp));
+    return dp[ind][buy] = profit;
+}
+int maxProfitCoolM(vector<int> &prices)
+{
+    int n = SZ(prices);
+    int buy = 1;
+    VVI dp(n, VI(2, -1));
+    return maxProfitCoolMemo(0, prices, buy, dp);
+}
 // Optimal -----Tabulation----->
-// TC :
-// SC :
+// Time Complexity: O(N*2)
+// Reason: There are two nested loops that account for O(N*2) complexity.
+// Space Complexity: O(N*2)
+// Reason: We are using an external array of size ‘N*2’. Stack Space is eliminated.
+int maxProfitCoolT(vector<int> &prices)
+{
+    int n = SZ(prices);
+    int buy = 1;
+    VVI dp(n + 2, VI(2, 0));
+    // Changing params loop and here Tabulation is Buttom-Up
+    for (int ind = n - 1; ind >= 0; ind--)
+    { // First changing param
+      // Second changing param
+      // Instedof doing loop you can direct access buy like :
+        dp[ind][1] = max(-prices[ind] + dp[ind + 1][0], 0 + dp[ind + 1][1]);
+
+        dp[ind][0] = max(prices[ind] + dp[ind + 2][1], 0 + dp[ind + 1][0]);
+    }
+    return dp[0][1];
+}
 // Most Optimal -----Space Optimization----->
-// TC :
-// SC :
+// TC :O(N)
+// SC :O(6) much like constant
+// As w're doing ind+1,ind+2 we
+int maxProfitCoolSO(vector<int> &prices)
+{
+    int n = SZ(prices);
+    VI ahead(3, 0), cur(3, 0);
+    VI f1(2, 0);
+    VI f2(2, 0);
+    VI fcur(2, 0);
+    // Changing params loop and here Tabulation is Buttom-Up
+    for (int ind = n - 1; ind >= 0; ind--)
+    { // First changing param
+        cur[1] = max(-prices[ind] + f1[0], 0 + f1[1]);
+        cur[0] = max(prices[ind] + f2[1], 0 + f1[1]);
+        f2 = f1;
+        f1 = cur;
+    }
+    return cur[1];
+}
 
 /*
 40.
@@ -5547,7 +5642,7 @@ int main()
     // cout << "Is matching " << wildcardMatchingM(p, s) << endl;
     // cout << "Is matching " << wildcardMatchingT(p, s) << endl;
     // cout << "Is matching " << wildcardMatchingSO(p, s) << endl;
-    VI prices = {3, 2, 6, 5, 0, 3};
+    VI prices = {1, 2, 3, 0, 2};
     // cout << "Max profit " << maxProfitI(prices) << endl;
     // cout << "Max profit " << maxProfitIIR(prices) << endl;
     // cout << "Max profit " << maxProfitIIM(prices) << endl;
@@ -5558,10 +5653,14 @@ int main()
     // cout << "Max profit M " << maxProfitIIIM(prices) << endl;
     // cout << "Max profit T " << maxProfitIIIT(prices) << endl;
     // cout << "Max profit SO " << maxProfitIIISO(prices) << endl;
-    cout << "Max profit R " << maxProfitIIItR(prices, 2) << endl;
-    cout << "Max profit M " << maxProfitIIItM(prices, 2) << endl;
-    cout << "Max profit T " << maxProfitIIItT(prices, 2) << endl;
-    cout << "Max profit T " << maxProfitIIItSO(prices, 2) << endl;
+    // cout << "Max profit R " << maxProfitIIItR(prices, 2) << endl;
+    // cout << "Max profit M " << maxProfitIIItM(prices, 2) << endl;
+    // cout << "Max profit T " << maxProfitIIItT(prices, 2) << endl;
+    // cout << "Max profit T " << maxProfitIIItSO(prices, 2) << endl;
+    cout << "Max profit Cooldown R " << maxProfitCoolR(prices) << endl;
+    cout << "Max profit Cooldown M " << maxProfitCoolM(prices) << endl;
+    cout << "Max profit Cooldown T " << maxProfitCoolT(prices) << endl;
+    cout << "Max profit Cooldown SO " << maxProfitCoolSO(prices) << endl;
     //  End code here-------->>
 
     return 0;

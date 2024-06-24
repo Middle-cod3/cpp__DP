@@ -1,4 +1,4 @@
-Max profit R 7
-Max profit M 7
-Max profit T 7
-Max profit T 7
+Max profit Cooldown R 3
+Max profit Cooldown M 3
+Max profit Cooldown T 3
+Max profit Cooldown SO 3
