@@ -4824,32 +4824,11 @@ int maxProfitIIIR(vector<int> &prices)
     int buy = 1, cap = 2;
     return maxProfitIIIRecr(0, prices, buy, cap);
 }
-// Recursive code but insteadof cap we use transaction=4
-int maxProfitIIItRecr(int ind, VI &prices, int t)
-{
-    int n = SZ(prices);
-    // Base case :
-    if (ind == n || t == 4)
-        return 0;
-    int profit = 0;
-    if (t % 2 == 0) // Buy
-    {
-        profit = max(-prices[ind] + maxProfitIIItRecr(ind + 1, prices, t + 1),
-                     0 + maxProfitIIItRecr(ind + 1, prices, t));
-    }
-    else
-        profit = max(prices[ind] + maxProfitIIItRecr(ind + 1, prices, t + 1),
-                     0 + maxProfitIIItRecr(ind + 1, prices, t));
-    return profit;
-}
-int maxProfitIIItR(vector<int> &prices)
-{
-    int t = 4;
-    return maxProfitIIItRecr(0, prices, t);
-}
 // Better ------Memoization----->
-// TC :
-// SC :
+// Time Complexity: O(N*2*3)
+// Reason: There are N*2*3 states therefore at max ‘N*2*3’ new problems will be solved.
+// Space Complexity: O(N*2*3) + O(N)
+// Reason: We are using a recursion stack space(O(N)) and a 3D array ( O(N*2*3)).
 int maxProfitIIIMemo(int ind, VI &prices, int buy, int cap, VVVI &dp)
 {
     int n = SZ(prices);
@@ -4883,8 +4862,10 @@ int maxProfitIIIM(vector<int> &prices)
     return maxProfitIIIMemo(0, prices, buy, cap, dp);
 }
 // Optimal -----Tabulation----->
-// TC :
-// SC :
+// Time Complexity: O(N*2*3)
+// Reason: There are three nested loops that account for O(N*2*3) complexity.
+// Space Complexity: O(N*2*3)
+// Reason: We are using an external array of size ‘N*2*3’. Stack Space is eliminated.
 int maxProfitIIIT(vector<int> &prices)
 {
     int n = SZ(prices);
@@ -4912,9 +4893,11 @@ int maxProfitIIIT(vector<int> &prices)
     }
     return dp[0][1][2];
 }
+
 // Most Optimal -----Space Optimization----->
-// TC :
-// SC :
+// Time Complexity: O(N*2*3)
+// Reason: There are three nested loops that account for O(N*2*3) complexity
+// Space Complexity: O(1)
 int maxProfitIIISO(vector<int> &prices)
 {
     int n = SZ(prices);
@@ -4946,22 +4929,122 @@ int maxProfitIIISO(vector<int> &prices)
 }
 
 /*
-38.
-ANS :
+38. Best Time to Buy and Sell Stock IV
+ANS : You are given an integer array prices where prices[i] is the price of a given stock on the ith day, and an integer k.
+Find the maximum profit you can achieve. You may complete at most k transactions: i.e. you may buy at most k times and sell at most k times.
+Note: You may not engage in multiple transactions simultaneously (i.e., you must sell the stock before you buy again).
 Input :   || Output :
 */
+/*
+Intuition : Instedof doing buy/sell and capacity calculation we can do using transaction
+*/
 // Bruteforce -----Recursion------>
-// TC :
-// SC :
+// TC : O(2^(n * 2k))
+// SC :O(N) recursion stack space
+int maxProfitIIItRecr(int ind, int trans, VI &prices, int k)
+{
+    int n = SZ(prices);
+    // Base case :
+    if (ind == n || trans == 2 * k)
+        return 0;
+    if (trans % 2 == 0) // Buy
+    {
+        return max(-prices[ind] + maxProfitIIItRecr(ind + 1, trans + 1, prices, k),
+                   0 + maxProfitIIItRecr(ind + 1, trans, prices, k));
+    }
+    else
+        return max(prices[ind] + maxProfitIIItRecr(ind + 1, trans + 1, prices, k),
+                   0 + maxProfitIIItRecr(ind + 1, trans, prices, k));
+}
+int maxProfitIIItR(vector<int> &prices, int k)
+{
+    return maxProfitIIItRecr(0, 0, prices, k); // Index,Transaction count, Array, Limit
+}
 // Better ------Memoization----->
-// TC :
-// SC :
+// Time Complexity: O(n * k)
+// Space Complexity: O(n * k)
+int maxProfitIIItMemo(int ind, VI &prices, int t, VVI &dp, int k)
+{
+    int n = SZ(prices);
+    // Base case :
+    if (ind == n || t == 2 * k)
+        return 0;
+    if (dp[ind][t] != -1)
+        return dp[ind][t];
+    if (t % 2 == 0) // Buy
+    {
+        return dp[ind][t] = max(-prices[ind] + maxProfitIIItMemo(ind + 1, prices, t + 1, dp, k),
+                                0 + maxProfitIIItMemo(ind + 1, prices, t, dp, k));
+    }
+    else
+        return dp[ind][t] = max(prices[ind] + maxProfitIIItMemo(ind + 1, prices, t + 1, dp, k),
+                                0 + maxProfitIIItMemo(ind + 1, prices, t, dp, k));
+}
+int maxProfitIIItM(vector<int> &prices, int k)
+{
+    int n = SZ(prices);
+    VVI dp(n, VI(2 * k, -1));
+    return maxProfitIIItMemo(0, prices, 0, dp, k);
+}
 // Optimal -----Tabulation----->
-// TC :
-// SC :
+// Time Complexity: O(n * k)
+// Space Complexity: O(n * k)
+int maxProfitIIItT(vector<int> &prices, int k)
+{
+    int n = SZ(prices);
+    VVI dp(n + 1, VI(2 * k + 1, 0)); // We're adding extra space to avoid going out of bounds, as we're accessing indices ind+1 and t+1 in our calculations.
+    for (int ind = n - 1; ind >= 0; ind--)
+    { // First changing param
+        for (int t = 2 * k - 1; t >= 0; t--)
+        { // Second changing param
+
+            if (t % 2 == 0)
+            {
+                // Max of pick and notPick
+                // If we but on first day then we can sell with 0 if we not buy on
+                // first day then we can buy=1
+                dp[ind][t] = max(-prices[ind] +
+                                     dp[ind + 1][t + 1],
+                                 0 + dp[ind + 1][t]);
+            }
+            else
+                dp[ind][t] = max(prices[ind] + dp[ind + 1][t + 1],
+                                 0 + dp[ind + 1][t]);
+        }
+    }
+    return dp[0][0];
+}
 // Most Optimal -----Space Optimization----->
-// TC :
-// SC :
+// Time Complexity: O(n * k)
+// Space Complexity: O(k)
+int maxProfitIIItSO(vector<int> &prices, int k)
+{
+    int n = SZ(prices);
+    // We're adding extra space to avoid going out of bounds, as we're accessing indices ind+1 and t+1 in our calculations.
+    VI after(2 * k + 1, 0);
+    VI cur(2 * k + 1, 0);
+    for (int ind = n - 1; ind >= 0; ind--)
+    { // First changing param
+        for (int t = 2 * k - 1; t >= 0; t--)
+        { // Second changing param
+
+            if (t % 2 == 0)
+            {
+                // Max of pick and notPick
+                // If we but on first day then we can sell with 0 if we not buy on
+                // first day then we can buy=1
+                cur[t] = max(-prices[ind] +
+                                 after[t + 1],
+                             0 + after[t]);
+            }
+            else
+                cur[t] = max(prices[ind] + after[t + 1],
+                             0 + after[t]);
+        }
+        after = cur;
+    }
+    return after[0];
+}
 
 /*
 39.
@@ -5464,7 +5547,7 @@ int main()
     // cout << "Is matching " << wildcardMatchingM(p, s) << endl;
     // cout << "Is matching " << wildcardMatchingT(p, s) << endl;
     // cout << "Is matching " << wildcardMatchingSO(p, s) << endl;
-    VI prices = {7, 1, 5, 3, 6, 4};
+    VI prices = {3, 2, 6, 5, 0, 3};
     // cout << "Max profit " << maxProfitI(prices) << endl;
     // cout << "Max profit " << maxProfitIIR(prices) << endl;
     // cout << "Max profit " << maxProfitIIM(prices) << endl;
@@ -5475,7 +5558,10 @@ int main()
     // cout << "Max profit M " << maxProfitIIIM(prices) << endl;
     // cout << "Max profit T " << maxProfitIIIT(prices) << endl;
     // cout << "Max profit SO " << maxProfitIIISO(prices) << endl;
-    cout << "Max profit R " << maxProfitIIItR(prices) << endl;
+    cout << "Max profit R " << maxProfitIIItR(prices, 2) << endl;
+    cout << "Max profit M " << maxProfitIIItM(prices, 2) << endl;
+    cout << "Max profit T " << maxProfitIIItT(prices, 2) << endl;
+    cout << "Max profit T " << maxProfitIIItSO(prices, 2) << endl;
     //  End code here-------->>
 
     return 0;

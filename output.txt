@@ -1,1 +1,4 @@
-Max profit R 0
+Max profit R 7
+Max profit M 7
+Max profit T 7
+Max profit T 7
