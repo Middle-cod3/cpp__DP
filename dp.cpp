@@ -5160,8 +5160,15 @@ int maxProfitCoolSO(vector<int> &prices)
 }
 
 /*
-40.
-ANS :
+40. Best Time to Buy and Sell Stock with Transaction Fee
+ANS : You are given an array prices where prices[i] is the price of a given stock on the ith day, and an integer fee representing a transaction fee.
+
+Find the maximum profit you can achieve. You may complete as many transactions as you like, but you need to pay the transaction fee for each transaction.
+
+Note:
+
+You may not engage in multiple transactions simultaneously (i.e., you must sell the stock before you buy again).
+The transaction fee is only charged once for each stock purchase and sale.
 Input :   || Output :
 */
 // Bruteforce -----Recursion------>
@@ -5174,8 +5181,25 @@ Input :   || Output :
 // TC :
 // SC :
 // Most Optimal -----Space Optimization----->
-// TC :
-// SC :
+// TC :O(N)
+// SC :O(1)
+// You can give fee when you're buing or selling up to you but remember for per transaction you have to give fee
+int maxProfitFeeR(vector<int> &prices, int fee)
+{
+    int n = SZ(prices);
+    int aheadNotBuy, aheadBuy, curBuy, curNotBuy;
+    aheadBuy = aheadNotBuy = 0;
+    for (int ind = n - 1; ind >= 0; ind--)
+    {
+        // sell
+        curNotBuy = max(prices[ind] - fee + aheadBuy, 0 + aheadNotBuy);
+        // buy
+        curBuy = max(-prices[ind] + aheadNotBuy, 0 + aheadBuy);
+        aheadBuy = curBuy;
+        aheadNotBuy = curNotBuy;
+    }
+    return aheadBuy;
+}
 /*
 41.
 ANS :
