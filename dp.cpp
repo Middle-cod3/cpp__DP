@@ -7,6 +7,7 @@
 using namespace std;
 typedef vector<int> VI;
 typedef vector<vector<int>> VVI;
+typedef vector<vector<vector<int>>> VVVI;
 typedef vector<string> VS;
 typedef queue<int> QU;
 typedef queue<pair<int, int>> QP;
@@ -4592,7 +4593,7 @@ Input :   || Output :
 /*
 Intuition : If you're selling it on i-th day,you buy on the minimum price from 1st->(i-1)
 */
-int maxProfit(vector<int> &prices)
+int maxProfitI(vector<int> &prices)
 {
     int n = SZ(prices);
     if (n == 1)
@@ -4618,7 +4619,7 @@ int maxProfit(vector<int> &prices)
 // SC :
 
 /*
-36. Buy and Sell Stock - II
+36. Buy and Sell Stock - IIII
 ANS : You are given an integer array prices where prices[i] is the price of a given stock on the ith day.
 On each day, you may decide to buy and/or sell the stock. You can only hold at most one share of the stock at any time. However, you can buy it then immediately sell it on the same day.
 Find and return the maximum profit you can achieve.
@@ -4664,7 +4665,7 @@ int maxProfitRecr(int ind, VI &prices, int buy)
         profit = max(prices[ind] + maxProfitRecr(ind + 1, prices, 1), 0 + maxProfitRecr(ind + 1, prices, 0));
     return profit;
 }
-int maxProfitR(vector<int> &prices)
+int maxProfitIIR(vector<int> &prices)
 {
     int buy = 1;
     return maxProfitRecr(0, prices, buy);
@@ -4693,7 +4694,7 @@ int maxProfitMemo(int ind, VI &prices, int buy, VVI &dp)
         profit = max(prices[ind] + maxProfitMemo(ind + 1, prices, 1, dp), 0 + maxProfitMemo(ind + 1, prices, 0, dp));
     return dp[ind][buy] = profit;
 }
-int maxProfitM(vector<int> &prices)
+int maxProfitIIM(vector<int> &prices)
 {
     int n = SZ(prices);
     int buy = 1;
@@ -4710,7 +4711,7 @@ First go for base case then
 check for changing params like ind and buy
 Then copy the recursion
 */
-int maxProfitT(vector<int> &prices)
+int maxProfitIIT(vector<int> &prices)
 {
     int n = SZ(prices);
     int buy = 1;
@@ -4739,7 +4740,7 @@ int maxProfitT(vector<int> &prices)
 // Most Optimal -----Space Optimization----->
 // TC :O(N*2)
 // SC :O(1)
-int maxProfitSO(vector<int> &prices)
+int maxProfitIISO(vector<int> &prices)
 {
     int n = SZ(prices);
     VI ahead(2, 0), cur(2, 0);
@@ -4768,7 +4769,7 @@ int maxProfitSO(vector<int> &prices)
 // Most Optimal -----Variable Optimization----->
 // TC :O(N*2)
 // SC :O(1)
-int maxProfitVO(vector<int> &prices)
+int maxProfitIIVO(vector<int> &prices)
 {
     int n = SZ(prices);
     int aheadNotBuy, aheadBuy, curBuy, curNotBuy;
@@ -4784,22 +4785,165 @@ int maxProfitVO(vector<int> &prices)
 }
 
 /*
-37.
-ANS :
+37.  Best Time to Buy and Sell Stock III
+ANS : You are given an array prices where prices[i] is the price of a given stock on the ith day.
+
+Find the maximum profit you can achieve. You may complete at most two transactions.
+
+Note: You may not engage in multiple transactions simultaneously (i.e., you must sell the stock before you buy again).
 Input :   || Output :
 */
 // Bruteforce -----Recursion------>
-// TC :
-// SC :
+// TC : O(2^N)
+// SC :O(N) Recursion stack space
+int maxProfitIIIRecr(int ind, VI &prices, int buy, int cap)
+{
+    int n = SZ(prices);
+    // Base Case :
+    if (ind == n)
+        return 0;
+    if (cap == 0)
+        return 0;
+    int profit = 0;
+    if (buy)
+    {
+        // Max of pick and notPick
+        // If we but on first day then we can sell with 0 if we not buy on
+        // first day then we can buy=1
+        profit = max(-prices[ind] + maxProfitIIIRecr(ind + 1, prices, 0, cap),
+                     0 + maxProfitIIIRecr(ind + 1, prices, 1, cap));
+    }
+    else
+        profit =
+            max(prices[ind] + maxProfitIIIRecr(ind + 1, prices, 1, cap - 1),
+                0 + maxProfitIIIRecr(ind + 1, prices, 0, cap));
+    return profit;
+}
+int maxProfitIIIR(vector<int> &prices)
+{
+    int buy = 1, cap = 2;
+    return maxProfitIIIRecr(0, prices, buy, cap);
+}
+// Recursive code but insteadof cap we use transaction=4
+int maxProfitIIItRecr(int ind, VI &prices, int t)
+{
+    int n = SZ(prices);
+    // Base case :
+    if (ind == n || t == 4)
+        return 0;
+    int profit = 0;
+    if (t % 2 == 0) // Buy
+    {
+        profit = max(-prices[ind] + maxProfitIIItRecr(ind + 1, prices, t + 1),
+                     0 + maxProfitIIItRecr(ind + 1, prices, t));
+    }
+    else
+        profit = max(prices[ind] + maxProfitIIItRecr(ind + 1, prices, t + 1),
+                     0 + maxProfitIIItRecr(ind + 1, prices, t));
+    return profit;
+}
+int maxProfitIIItR(vector<int> &prices)
+{
+    int t = 4;
+    return maxProfitIIItRecr(0, prices, t);
+}
 // Better ------Memoization----->
 // TC :
 // SC :
+int maxProfitIIIMemo(int ind, VI &prices, int buy, int cap, VVVI &dp)
+{
+    int n = SZ(prices);
+    // Base Case :
+    if (ind == n)
+        return 0;
+    if (cap == 0)
+        return 0;
+    if (dp[ind][buy][cap] != -1)
+        return dp[ind][buy][cap];
+    int profit = 0;
+    if (buy)
+    {
+        // Max of pick and notPick
+        // If we but on first day then we can sell with 0 if we not buy on
+        // first day then we can buy=1
+        profit = max(-prices[ind] + maxProfitIIIMemo(ind + 1, prices, 0, cap, dp),
+                     0 + maxProfitIIIMemo(ind + 1, prices, 1, cap, dp));
+    }
+    else
+        profit =
+            max(prices[ind] + maxProfitIIIMemo(ind + 1, prices, 1, cap - 1, dp),
+                0 + maxProfitIIIMemo(ind + 1, prices, 0, cap, dp));
+    return dp[ind][buy][cap] = profit;
+}
+int maxProfitIIIM(vector<int> &prices)
+{
+    int n = SZ(prices);
+    int buy = 1, cap = 2;
+    vector<vector<vector<int>>> dp(n, VVI(2, VI(3, -1)));
+    return maxProfitIIIMemo(0, prices, buy, cap, dp);
+}
 // Optimal -----Tabulation----->
 // TC :
 // SC :
+int maxProfitIIIT(vector<int> &prices)
+{
+    int n = SZ(prices);
+    vector<vector<vector<int>>> dp(n + 1, VVI(2, VI(3, 0)));
+    for (int ind = n - 1; ind >= 0; ind--)
+    { // First changing param
+        for (int buy = 0; buy <= 1; buy++)
+        { // Second changing param
+            for (int cap = 1; cap <= 2; cap++)
+            { // Third changing param
+                if (buy)
+                {
+                    // Max of pick and notPick
+                    // If we but on first day then we can sell with 0 if we not buy on
+                    // first day then we can buy=1
+                    dp[ind][buy][cap] = max(-prices[ind] +
+                                                dp[ind + 1][0][cap],
+                                            0 + dp[ind + 1][1][cap]);
+                }
+                else
+                    dp[ind][buy][cap] = max(prices[ind] + dp[ind + 1][1][cap - 1],
+                                            0 + dp[ind + 1][0][cap]);
+            }
+        }
+    }
+    return dp[0][1][2];
+}
 // Most Optimal -----Space Optimization----->
 // TC :
 // SC :
+int maxProfitIIISO(vector<int> &prices)
+{
+    int n = SZ(prices);
+    VVI after(2, VI(3, 0));
+    VVI cur(2, VI(3, 0));
+    for (int ind = n - 1; ind >= 0; ind--)
+    { // First changing param
+        for (int buy = 0; buy <= 1; buy++)
+        { // Second changing param
+            for (int cap = 1; cap <= 2; cap++)
+            { // Third changing param
+                if (buy)
+                {
+                    // Max of pick and notPick
+                    // If we but on first day then we can sell with 0 if we not buy on
+                    // first day then we can buy=1
+                    cur[buy][cap] = max(-prices[ind] +
+                                            after[0][cap],
+                                        0 + after[1][cap]);
+                }
+                else
+                    cur[buy][cap] = max(prices[ind] + after[1][cap - 1],
+                                        0 + after[0][cap]);
+            }
+        }
+        after = cur;
+    }
+    return after[1][2];
+}
 
 /*
 38.
@@ -5321,11 +5465,17 @@ int main()
     // cout << "Is matching " << wildcardMatchingT(p, s) << endl;
     // cout << "Is matching " << wildcardMatchingSO(p, s) << endl;
     VI prices = {7, 1, 5, 3, 6, 4};
-    cout << "Max profit " << maxProfitR(prices) << endl;
-    cout << "Max profit " << maxProfitM(prices) << endl;
-    cout << "Max profit " << maxProfitT(prices) << endl;
-    cout << "Max profit " << maxProfitSO(prices) << endl;
-    cout << "Max profit " << maxProfitVO(prices) << endl;
+    // cout << "Max profit " << maxProfitI(prices) << endl;
+    // cout << "Max profit " << maxProfitIIR(prices) << endl;
+    // cout << "Max profit " << maxProfitIIM(prices) << endl;
+    // cout << "Max profit " << maxProfitIIT(prices) << endl;
+    // cout << "Max profit " << maxProfitIISO(prices) << endl;
+    // cout << "Max profit " << maxProfitIIVO(prices) << endl;
+    // cout << "Max profit " << maxProfitIIIR(prices) << endl;
+    // cout << "Max profit M " << maxProfitIIIM(prices) << endl;
+    // cout << "Max profit T " << maxProfitIIIT(prices) << endl;
+    // cout << "Max profit SO " << maxProfitIIISO(prices) << endl;
+    cout << "Max profit R " << maxProfitIIItR(prices) << endl;
     //  End code here-------->>
 
     return 0;
