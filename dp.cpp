@@ -5200,32 +5200,173 @@ int maxProfitFeeR(vector<int> &prices, int fee)
     }
     return aheadBuy;
 }
+/*##############################DP ON LIS#################################*/
 /*
-41.
-ANS :
+41. Longest Increasing Subsequence
+ANS : Given an integer array nums, return the length of the longest strictly increasing  subsequence.Qs says thats its increasing so if array elems are same then return 1
 Input :   || Output :
 */
+// Very bruteforce is generate all subsequences then check for increasing then check for longest.It'll givr e you O(2^n) in exponential in nature
 // Bruteforce -----Recursion------>
-// TC :
-// SC :
+// TC :O(2^n) cz in every index we've 2 options take or not take
+// SC :O(N) for recursion stack space
+// As we are taking increasing values so i have to remember the last one(index) i pick so that i can pick next bigger value from the prev
+int lengthOfLISRecr(int ind, int prevInd, VI &nums)
+{
+    int n = SZ(nums);
+    // Base case :
+    if (ind == n)
+        return 0;
+    // notTake
+    int notTake = 0 + lengthOfLISRecr(ind + 1, prevInd, nums);
+    int take = 0;
+    if (prevInd == -1 || nums[ind] > nums[prevInd])
+    {
+        take = 1 + lengthOfLISRecr(ind + 1, ind, nums);
+    }
+    return max(notTake, take);
+}
+int lengthOfLISR(vector<int> &nums)
+{
+    return lengthOfLISRecr(0, -1, nums); // len,prevInd,array
+}
 // Better ------Memoization----->
-// TC :
-// SC :
+// TC :O(NxN)
+// SC :O(NxN)+O(N)
+int lengthOfLISMemo(int ind, int prevInd, VI &nums, VVI &dp)
+{
+    int n = SZ(nums);
+    // Base case :
+    if (ind == n)
+        return 0;
+    if (dp[ind][prevInd + 1] != -1)
+        return dp[ind][prevInd + 1];
+    // notTake
+    int notTake = 0 + lengthOfLISMemo(ind + 1, prevInd, nums, dp);
+    int take = 0;
+    if (prevInd == -1 || nums[ind] > nums[prevInd])
+    {
+        take = 1 + lengthOfLISMemo(ind + 1, ind, nums, dp);
+    }
+    return dp[ind][prevInd + 1] = max(notTake, take);
+}
+int lengthOfLISM(vector<int> &nums)
+{
+    int n = SZ(nums);
+    VVI dp(n, VI(n + 1, -1));
+    return lengthOfLISMemo(0, -1, nums, dp); // len,prevInd,array
+    // As we can't save -1 ind in dp so we use cordinate change means we're trying prevInd=-1 to n-1 so insteadof -1 we use 0 for 0-> 1,1->2 and so on.........
+}
 // Optimal -----Tabulation----->
-// TC :
-// SC :
+// TC :O(n^2)
+// SC :O(n^2)
+int lengthOfLIST(vector<int> &nums)
+{
+    int n = SZ(nums);
+    VVI dp(n + 1, VI(n + 1, 0));
+    for (int ind = n - 1; ind >= 0; ind--)
+    { // First changing param
+        for (int prevInd = ind - 1; prevInd >= -1; prevInd--)
+        { // Second changing param(As we know prev value is refer to ind-1)
+          // notTake
+            int notTake = 0 + dp[ind + 1][prevInd + 1];
+            int take = 0;
+            if (prevInd == -1 || nums[ind] > nums[prevInd])
+            {
+                take = 1 + dp[ind + 1][ind + 1];
+            }
+            dp[ind][prevInd + 1] = max(notTake, take);
+        }
+    }
+    return dp[0][-1 + 1];
+}
 // Most Optimal -----Space Optimization----->
-// TC :
-// SC :
-
+// TC :O(N^2)
+// SC :O(nx2)
+int lengthOfLISSO(vector<int> &nums)
+{
+    int n = SZ(nums);
+    VI next(n + 1, 0), cur(n + 1, 0);
+    for (int ind = n - 1; ind >= 0; ind--)
+    {
+        for (int prevInd = ind - 1; prevInd >= -1; prevInd--)
+        {
+            int notPick = 0 + next[prevInd + 1];
+            int pick = 0;
+            if (prevInd == -1 || nums[ind] > nums[prevInd])
+            {
+                pick = 1 + next[ind + 1];
+            }
+            cur[prevInd + 1] = max(notPick, pick);
+        }
+        next = cur;
+    }
+    return next[-1 + 1];
+}
+// Most Most Optimal -----Optimal Tabulation----->
+// TC :O(N^2)
+// SC :O(N)
 /*
-42.
-ANS :
+For every index i of the array ‘arr’;
+dp[ i ] is the length of the longest increasing subsequence that is possible that end with index ind of the original array.
+*/
+int lengthOfLISOT(vector<int> &nums)
+{
+    int n = SZ(nums);
+    VI dp(n, 1);
+    int maxi = 1;
+    for (int i = 0; i < n; i++)
+    {
+        for (int prev = 0; prev < i; prev++)
+        {
+            if (nums[prev] < nums[i])
+            {
+                dp[i] = max(dp[i], 1 + dp[prev]);
+            }
+        }
+        maxi = max(maxi, dp[i]);
+    }
+    return maxi;
+}
+/*
+42. Print Longest Increasing Subsequence
+ANS : Given an integer n and an array of integers arr, return the Longest Increasing Subsequence which is Index-wise lexicographically smallest.
 Input :   || Output :
 */
-// Bruteforce -----Recursion------>
-// TC :
-// SC :
+// Bruteforce -----Trace Back------>
+// TC : O(N*N)
+// SC :O(N)  We are only using two rows of size ‘N’. and O(N) for storing the ans
+VI longestIncreasingSubsequenceTB(int n, vector<int> &nums)
+{
+    VI dp(n, 1), hash(n);
+    int maxi = 1, lastInd = 0;
+    for (int i = 0; i < n; i++)
+    {
+        for (int prev = 0; prev < i; prev++)
+        {
+            if (nums[prev] < nums[i] &&
+                1 + dp[prev] > dp[i])
+            {
+                dp[i] = 1 + dp[prev];
+                hash[i] = prev;
+            }
+        }
+        if (dp[i] > maxi)
+        {
+            maxi = dp[i];
+            lastInd = i;
+        }
+    }
+    VI ans;
+    ans.PB(nums[lastInd]);
+    while (hash[lastInd] != lastInd)
+    {
+        lastInd = hash[lastInd];
+        ans.PB(nums[lastInd]);
+    }
+    REV(ans);
+    return ans;
+}
 // Better ------Memoization----->
 // TC :
 // SC :
@@ -5666,7 +5807,7 @@ int main()
     // cout << "Is matching " << wildcardMatchingM(p, s) << endl;
     // cout << "Is matching " << wildcardMatchingT(p, s) << endl;
     // cout << "Is matching " << wildcardMatchingSO(p, s) << endl;
-    VI prices = {1, 2, 3, 0, 2};
+    // VI prices = {1, 2, 3, 0, 2};
     // cout << "Max profit " << maxProfitI(prices) << endl;
     // cout << "Max profit " << maxProfitIIR(prices) << endl;
     // cout << "Max profit " << maxProfitIIM(prices) << endl;
@@ -5681,10 +5822,18 @@ int main()
     // cout << "Max profit M " << maxProfitIIItM(prices, 2) << endl;
     // cout << "Max profit T " << maxProfitIIItT(prices, 2) << endl;
     // cout << "Max profit T " << maxProfitIIItSO(prices, 2) << endl;
-    cout << "Max profit Cooldown R " << maxProfitCoolR(prices) << endl;
-    cout << "Max profit Cooldown M " << maxProfitCoolM(prices) << endl;
-    cout << "Max profit Cooldown T " << maxProfitCoolT(prices) << endl;
-    cout << "Max profit Cooldown SO " << maxProfitCoolSO(prices) << endl;
+    // cout << "Max profit Cooldown R " << maxProfitCoolR(prices) << endl;
+    // cout << "Max profit Cooldown M " << maxProfitCoolM(prices) << endl;
+    // cout << "Max profit Cooldown T " << maxProfitCoolT(prices) << endl;
+    // cout << "Max profit Cooldown SO " << maxProfitCoolSO(prices) << endl;
+    VI arr = {10, 9, 2, 5, 3, 7, 101, 18};
+    // cout << "Longest inc subse.. " << lengthOfLISR(arr) << endl;
+    // cout << "Longest inc subse.. " << lengthOfLISM(arr) << endl;
+    // cout << "Longest inc subse.. " << lengthOfLIST(arr) << endl;
+    // cout << "Longest inc subse.. " << lengthOfLISSO(arr) << endl;
+    cout << "Longest inc subse.. " << endl;
+    VI a = longestIncreasingSubsequenceTB(SZ(arr), arr);
+    printVector(a);
     //  End code here-------->>
 
     return 0;
