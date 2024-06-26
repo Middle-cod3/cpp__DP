@@ -1,1 +1,1 @@
-Chain length 4
+LIS 2

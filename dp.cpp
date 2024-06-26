@@ -5560,13 +5560,54 @@ int longestStrChain(vector<string> &nums)
 // SC :
 
 /*
-46.
-ANS :
-Input :   || Output :
+46. Longest Bitonic Subsequence
+ANS : Given an array of positive integers. Find the maximum length of Bitonic subsequence.
+A subsequence of array is called Bitonic if it is first strictly increasing, then strictly decreasing. Return the maximum length of bitonic subsequence.
+Note : A strictly increasing or a strictly decreasing sequence should not be considered as a bitonic sequence
+Question states : Any increasing or decreasing or left->mid increase and mid->high decrese like triangle that is called Bitonic Subsequences
+Input :   || Output : Expected Time Complexity: O(n2) Expected Space Complexity: O(n)
 */
 // Bruteforce -----Recursion------>
-// TC :
-// SC :
+// Time Complexity: O(N*N)
+// Reason: There are two nested loops that are run twice.
+// Space Complexity: O(N)
+// Reason: We are only using two rows of size n.
+int LongestBitonicSequence(int n, vector<int> &arr)
+{
+    // Initialize two arrays to store the increasing and decreasing subsequences
+    vector<int> dp1(n, 1); // dp1[i] stores the length of the longest increasing subsequence ending at arr[i]
+    vector<int> dp2(n, 1); // dp2[i] stores the length of the longest decreasing subsequence ending at arr[i]
+
+    // Calculate the longest increasing subsequence
+    for (int i = 0; i < n; i++)
+    {
+        for (int prev_index = 0; prev_index < i; prev_index++)
+        {
+            if (arr[prev_index] < arr[i])
+            {
+                dp1[i] = max(dp1[i], 1 + dp1[prev_index]);
+            }
+        }
+    }
+
+    // Reverse the direction of nested loops to calculate the longest decreasing subsequence
+
+    int maxi = -1;
+    for (int i = n - 1; i >= 0; i--)
+    {
+        for (int prev_index = n - 1; prev_index > i; prev_index--)
+        {
+            if (arr[prev_index] < arr[i])
+            {
+                dp2[i] = max(dp2[i], 1 + dp2[prev_index]);
+            }
+        }
+        // Find the maximum length of the bitonic subsequence
+        maxi = max(maxi, dp1[i] + dp2[i] - 1);
+    }
+
+    return maxi;
+}
 // Better ------Memoization----->
 // TC :
 // SC :
@@ -5578,13 +5619,55 @@ Input :   || Output :
 // SC :
 
 /*
-47.
-ANS :
+47.  Number of Longest Increasing Subsequence
+ANS :Given an integer array nums, return the number of longest increasing subsequences.
+
+Notice that the sequence has to be strictly increasing.
 Input :   || Output :
 */
 // Bruteforce -----Recursion------>
 // TC :
 // SC :
+int findNumberOfLIS(vector<int> &arr)
+{
+    int n = arr.size();
+
+    vector<int> dp(n, 1); // dp[i] stores the length of the LIS ending at arr[i]
+    vector<int> ct(n, 1); // ct[i] stores the count of LIS ending at arr[i]
+
+    int maxi = 1; // Initialize the maximum length as 1
+
+    for (int i = 0; i < n; i++)
+    {
+        for (int prev_index = 0; prev_index < i; prev_index++)
+        {
+            if (arr[prev_index] < arr[i] && dp[prev_index] + 1 > dp[i])
+            {
+                dp[i] = dp[prev_index] + 1;
+                // Inherit count
+                ct[i] = ct[prev_index];
+            }
+            else if (arr[prev_index] < arr[i] && dp[prev_index] + 1 == dp[i])
+            {
+                // Increase the count
+                ct[i] = ct[i] + ct[prev_index];
+            }
+        }
+        maxi = max(maxi, dp[i]);
+    }
+
+    int numberOfLIS = 0;
+
+    for (int i = 0; i < n; i++)
+    {
+        if (dp[i] == maxi)
+        {
+            numberOfLIS += ct[i];
+        }
+    }
+
+    return numberOfLIS;
+}
 // Better ------Memoization----->
 // TC :
 // SC :
@@ -5963,8 +6046,12 @@ int main()
     // VI a = longestIncreasingSubsequenceTB(SZ(arr), arr);
     // VI a = largestDivisibleSubset(arr);
     // printVector(a);
-    VS words = {"a", "b", "ba", "bca", "bda", "bdca"};
-    cout<<"Chain length "<<longestStrChain(words);
+    // VS words = {"a", "b", "ba", "bca", "bda", "bdca"};
+    // cout<<"Chain length "<<longestStrChain(words);
+    // VI nm = {1, 11, 2, 10, 4, 5, 2, 1};
+    // cout << "Bitonic Seq " << LongestBitonicSequence(8, nm);
+    VI nm = {1, 3, 5, 4, 7};
+    cout << "LIS " << findNumberOfLIS(nm);
 
     //  End code here-------->>
 
