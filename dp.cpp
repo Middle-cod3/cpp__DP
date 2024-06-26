@@ -180,6 +180,8 @@ iv. Write Base Case
 
 1️⃣2️⃣ Why we're doing 0-based to 1-based indexing in String Memoization problems?
 -->>As we're checking for negative index in 0-based indexing it will take lill time so we converted it to 1-based and checking upto i==0 so we're not going beyond 0 and its save time lill.
+1️⃣3️⃣ Subsequences : Picking any elems from the array with maintainig the order.
+Subsets : Picking any elems from the array but no need to maintainig the order.
 */
 
 /*##############################1D DP#################################*/
@@ -5333,7 +5335,7 @@ int lengthOfLISOT(vector<int> &nums)
 ANS : Given an integer n and an array of integers arr, return the Longest Increasing Subsequence which is Index-wise lexicographically smallest.
 Input :   || Output :
 */
-// Bruteforce -----Trace Back------>
+// Bruteforce -----Trace Back Algorithmic approach------>
 // TC : O(N*N)
 // SC :O(N)  We are only using two rows of size ‘N’. and O(N) for storing the ans
 VI longestIncreasingSubsequenceTB(int n, vector<int> &nums)
@@ -5342,6 +5344,7 @@ VI longestIncreasingSubsequenceTB(int n, vector<int> &nums)
     int maxi = 1, lastInd = 0;
     for (int i = 0; i < n; i++)
     {
+        hash[i] = i; // initializing with current index
         for (int prev = 0; prev < i; prev++)
         {
             if (nums[prev] < nums[i] &&
@@ -5378,16 +5381,102 @@ VI longestIncreasingSubsequenceTB(int n, vector<int> &nums)
 // SC :
 
 /*
-43.
+43. Print Longest Increasing Subsequence || Binary Search
+↑↑ Upto here we solve TC : O(N^2) SC O(N) but constrains is O(10^5) as our TC is N^2 so its became O(10^10) Now optimize it
 ANS :
+Input :   || Output :
+*/
+/*
+Intuition : is so simple go through all arr[i] if its same with GS(generated subsequences) then replace with same elem else if its not matched then place its right position means place it in a increasing order
+& as we know lower_bound() gives us
+The element X itself, if it is present.
+Or the next largest element, if the element is not present.
+GS=Creating a temp array
+*/
+
+// Most Optimal -----Time Optimization----->
+// Time Complexity: O(N*logN)
+// Reason: We iterate over the array of size N and in every iteration, we perform a binary search which takes logN time.
+// Space Complexity: O(N)
+// Reason: We are using an extra array of size N to store the temp variable.
+int longestSubsequence(int n, VI &arr)
+{
+    //   Using Binary search
+    // Init a temp array to generate subsequence
+    VI temp;
+    temp.PB(arr[0]); // Put the 1st elem
+    int len = 1;
+    for (int i = 1; i < n; i++)
+    {
+        if (arr[i] > temp.back())
+        { // If we found greater then push to next of temp[i]
+            temp.PB(arr[i]);
+            len++;
+        }
+        else
+        {
+            // finding insert position in a increasing order
+            int ind = lower_bound(temp.begin(), temp.end(), arr[i]) - temp.begin(); // Retuens index
+            temp[ind] = arr[i];
+        }
+    }
+    return len;
+}
+
+/*
+44. Largest Divisible Subset
+ANS : Given a set of distinct positive integers nums, return the largest subset answer such that every pair (answer[i], answer[j]) of elements in this subset satisfies:
+answer[i] % answer[j] == 0, or
+answer[j] % answer[i] == 0
+If there are multiple solutions, return any of them.
 Input :   || Output :
 */
 // Bruteforce -----Recursion------>
 // TC :
 // SC :
+/*
+Intuition : First sort the elems then pick first elem and add to hash array to save previous index now check from arr[1]->arr[n] if arr[i]%arr[prevInd]==0
+Why prevInd cz if array contain [1,4,8,16] that and i save prevInd as 2=>8 and i check 8%4==0 as on 4%1==0 as on 8%1==0
+As we know "If a divisor divides a dividend, then the dividend can be divided by the divisor."
+*/
 // Better ------Memoization----->
-// TC :
-// SC :
+// Time Complexity: O(N*N)
+// Reason: There are two nested loops.
+// Space Complexity: O(N)
+// Reason: We are only using two rows of size n.
+vector<int> largestDivisibleSubset(vector<int> &nums)
+{
+    int n = SZ(nums);
+    SORT(nums);
+    VI dp(n, 1), hash(n);
+    int maxi = 1, lastInd = 0;
+    for (int i = 0; i < n; i++)
+    {
+        hash[i] = i;
+        for (int prev = 0; prev < i; prev++)
+        {
+            if (nums[i] % nums[prev] == 0 && 1 + dp[prev] > dp[i])
+            {
+                dp[i] = 1 + dp[prev];
+                hash[i] = prev;
+            }
+        }
+        if (dp[i] > maxi)
+        {
+            maxi = dp[i];
+            lastInd = i;
+        }
+    }
+    VI ans;
+    ans.PB(nums[lastInd]);
+    while (hash[lastInd] != lastInd)
+    {
+        lastInd = hash[lastInd];
+        ans.PB(nums[lastInd]);
+    }
+    REV(ans);
+    return ans;
+}
 // Optimal -----Tabulation----->
 // TC :
 // SC :
@@ -5396,31 +5485,70 @@ Input :   || Output :
 // SC :
 
 /*
-44.
-ANS :
-Input :   || Output :
-*/
-// Bruteforce -----Recursion------>
-// TC :
-// SC :
-// Better ------Memoization----->
-// TC :
-// SC :
-// Optimal -----Tabulation----->
-// TC :
-// SC :
-// Most Optimal -----Space Optimization----->
-// TC :
-// SC :
+45. Longest String Chain
+ANS : You are given an array of words where each word consists of lowercase English letters.
 
-/*
-45.
-ANS :
+wordA is a predecessor of wordB if and only if we can insert exactly one letter anywhere in wordA without changing the order of the other characters to make it equal to wordB.
+
+For example, "abc" is a predecessor of "abac", while "cba" is not a predecessor of "bcad".
+A word chain is a sequence of words [word1, word2, ..., wordk] with k >= 1, where word1 is a predecessor of word2, word2 is a predecessor of word3, and so on. A single word is trivially a word chain with k == 1.
+
+Return the length of the longest possible word chain with words chosen from the given list of words.
 Input :   || Output :
 */
 // Bruteforce -----Recursion------>
-// TC :
-// SC :
+// Time Complexity: O(N*N * l)
+// Reason: We are setting up two nested loops and the compare function can be estimated to l, where l is the length of the longest string in the words [ ] array. Also, we are sorting so the time complexity will be (N^2 * l + NlogN)
+// Space Complexity: O(N)
+// Reason: We are only using a single array of size n.
+bool checkPossible(string &s1, string &s2)
+{
+    if (SZ(s1) != SZ(s2) + 1)
+        return false;
+    int first = 0, second = 0;
+    while (first < SZ(s1))
+    {
+        if (s1[first] == s2[second])
+        {
+            first++;
+            second++;
+        }
+        else
+        {
+            first++;
+        }
+    }
+    if (first == SZ(s1) && second == SZ(s2))
+        return true;
+    return false;
+}
+bool static comp(string &s1, string &s2)
+{
+    return SZ(s1) < SZ(s2);
+}
+
+int longestStrChain(vector<string> &nums)
+{
+    int n = SZ(nums);
+    sort(nums.begin(), nums.end(), comp);
+    VI dp(n, 1);
+    int maxi = 1;
+    for (int i = 0; i < n; i++)
+    {
+        for (int prev = 0; prev < i; prev++)
+        {
+            if (checkPossible(nums[i], nums[prev]) && 1 + dp[prev] > dp[i])
+            {
+                dp[i] = 1 + dp[prev];
+            }
+        }
+        if (dp[i] > maxi)
+        {
+            maxi = dp[i];
+        }
+    }
+    return maxi;
+}
 // Better ------Memoization----->
 // TC :
 // SC :
@@ -5826,14 +5954,18 @@ int main()
     // cout << "Max profit Cooldown M " << maxProfitCoolM(prices) << endl;
     // cout << "Max profit Cooldown T " << maxProfitCoolT(prices) << endl;
     // cout << "Max profit Cooldown SO " << maxProfitCoolSO(prices) << endl;
-    VI arr = {10, 9, 2, 5, 3, 7, 101, 18};
+    // VI arr = {10, 9, 2, 5, 3, 7, 101, 18};
     // cout << "Longest inc subse.. " << lengthOfLISR(arr) << endl;
     // cout << "Longest inc subse.. " << lengthOfLISM(arr) << endl;
     // cout << "Longest inc subse.. " << lengthOfLIST(arr) << endl;
     // cout << "Longest inc subse.. " << lengthOfLISSO(arr) << endl;
-    cout << "Longest inc subse.. " << endl;
-    VI a = longestIncreasingSubsequenceTB(SZ(arr), arr);
-    printVector(a);
+    // cout << "Longest inc subse.. " << endl;
+    // VI a = longestIncreasingSubsequenceTB(SZ(arr), arr);
+    // VI a = largestDivisibleSubset(arr);
+    // printVector(a);
+    VS words = {"a", "b", "ba", "bca", "bda", "bdca"};
+    cout<<"Chain length "<<longestStrChain(words);
+
     //  End code here-------->>
 
     return 0;

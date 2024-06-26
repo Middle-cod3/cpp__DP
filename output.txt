@@ -1,2 +1,1 @@
-Longest inc subse.. 
-10 2 5 7 101 
+Chain length 4
