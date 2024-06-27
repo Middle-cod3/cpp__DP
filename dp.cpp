@@ -182,6 +182,15 @@ iv. Write Base Case
 -->>As we're checking for negative index in 0-based indexing it will take lill time so we converted it to 1-based and checking upto i==0 so we're not going beyond 0 and its save time lill.
 1️⃣3️⃣ Subsequences : Picking any elems from the array with maintainig the order.
 Subsets : Picking any elems from the array but no need to maintainig the order.
+1️⃣4️⃣ Pattern Identification:
+Whenever we need to find the answer to a large problem such that the problem can be broken into subproblems and the final answer varies due to the order in which the subproblems are solved, we can think in terms of partition DP.
+Ex : prob : 1+2+3*5; opt 1= (1+2)+(3*5)=18 ; opt 2=(1+2+3)*5=30 So, changes in order of solving subprobelms changes the answer.
+1️⃣5️⃣ Matrix calculation : If you're given A=10x30 & B=30x5 this 2 matix can be multiplyed if first matrix's col == second matrix's row then its can be done
+The no of operations required is = take first row =10 * take common guy 30 * take remain 5=1500
+1️⃣6️⃣ Partition DP problems Rules **********
+i. Start with entire block /array express with f(i,j)
+ii. Try all prtitions -> run a loop to try all partitions
+iii. Return theh best possible 2 partitions
 */
 
 /*##############################1D DP#################################*/
@@ -5678,17 +5687,96 @@ int findNumberOfLIS(vector<int> &arr)
 // TC :
 // SC :
 
+/*##############################MCM DP | PARTITION DP#################################*/
 /*
-48.
-ANS :
+48. Matrix Chain Multiplication
+ANS : Given a sequence of matrices, find the most efficient way to multiply these matrices together. The efficient way is the one that involves the least number of multiplications.
+The dimensions of the matrices are given in an array arr[] of size N (such that N = number of matrices + 1) where the ith matrix has the dimensions (arr[i-1] x arr[i]).
 Input :   || Output :
 */
+/*
+Prob statement : Array resembles the dimensions of n-1 matrix,matrix A's dimensions =(arr[i-1] x arr[i]) same for B,C,D to n-1
+The multiplication ways are A(B(CD)) | (AB)(CD) | (A(BC))D ............Now find mini no of opertions that is given by any one this formula/option
+
+Intuition : Let's break it down step by step:
+
+The loop: for (int k = i; k < j; k++)
+
+This loop is trying all possible ways to split the chain of matrices between positions i and j. Let's imagine we have a chain of matrices: A, B, C, D. We're considering all ways to put a parenthesis:
+(A)(BCD), (AB)(CD), (ABC)(D)
+Each iteration of this loop represents one of these splits.
+
+The calculation: int steps = (arr[i - 1] * arr[k] * arr[j])
+
+This calculates the cost of multiplying the result of the left subchain with the right subchain.
+
+arr[i-1] represents the number of rows in the first matrix of the left subchain
+arr[k] represents the number of columns in the last matrix of the left subchain (which is the same as the number of rows in the first matrix of the right subchain)
+arr[j] represents the number of columns in the last matrix of the right subchain
+
+So, this calculates the cost of multiplying two matrices: one of size (arr[i-1] × arr[k]) and another of size (arr[k] × arr[j]).
+
+The recursive calls:
+CopymatrixMultiplicationRecr(i, k, n, arr) +
+matrixMultiplicationRecr(k + 1, j, n, arr)
+
+
+These recursive calls calculate the cost of multiplying matrices in the left subchain (from i to k) and the right subchain (from k+1 to j) respectively.
+
+Adding it all up:
+
+The total steps for this particular split is the sum of:
+
+The cost of multiplying the results of the two subchains
+The cost of multiplying matrices in the left subchain
+The cost of multiplying matrices in the right subchain
+
+*/
 // Bruteforce -----Recursion------>
-// TC :
+// TC : Exponentials
 // SC :
+int matrixMultiplicationRecr(int i, int j, int n, VI &arr)
+{
+    if (i == j)
+        return 0; // While shrinking we reached at same/one elem of the array
+    int mini = 1e9;
+    for (int k = i; k < j; k++)
+    {
+        int steps = (arr[i - 1] * arr[k] * arr[j]) + matrixMultiplicationRecr(i, k, n, arr) + matrixMultiplicationRecr(k + 1, j, n, arr);
+        if (steps < mini)
+            mini = steps;
+    }
+    return mini;
+}
+int matrixMultiplicationR(int N, VI &arr)
+{
+    return matrixMultiplicationRecr(1, N - 1, N, arr);
+}
 // Better ------Memoization----->
-// TC :
-// SC :
+// Time Complexity: O(N*N*N) ~O(N^3)
+// Reason: There are N*N states and we explicitly run a loop inside the function which will run for N times, therefore at max ‘N*N*N’ new problems will be solved.
+// Space Complexity: O(N*N) + O(N)
+// Reason: We are using an auxiliary recursion stack space(O(N))and a 2D array ( O(N*N)).
+int matrixMultiplicationMemo(int i, int j, VI &arr, VVI &dp)
+{
+    if (i == j)
+        return 0; // While shrinking we reached at same/one elem of the array
+    if (dp[i][j] != -1)
+        return dp[i][j];
+    int mini = 1e9;
+    for (int k = i; k < j; k++)
+    {
+        int steps = (arr[i - 1] * arr[k] * arr[j]) + matrixMultiplicationMemo(i, k, arr, dp) + matrixMultiplicationMemo(k + 1, j, arr, dp);
+        if (steps < mini)
+            mini = steps;
+    }
+    return dp[i][j] = mini;
+}
+int matrixMultiplicationM(int N, VI &arr)
+{
+    VVI dp(N, VI(N, -1));
+    return matrixMultiplicationMemo(1, N - 1, arr, dp);
+}
 // Optimal -----Tabulation----->
 // TC :
 // SC :
@@ -6050,8 +6138,11 @@ int main()
     // cout<<"Chain length "<<longestStrChain(words);
     // VI nm = {1, 11, 2, 10, 4, 5, 2, 1};
     // cout << "Bitonic Seq " << LongestBitonicSequence(8, nm);
-    VI nm = {1, 3, 5, 4, 7};
-    cout << "LIS " << findNumberOfLIS(nm);
+    // VI nm = {1, 3, 5, 4, 7};
+    // cout << "LIS " << findNumberOfLIS(nm);
+    VI nm = {40, 20, 30, 10, 30};
+    cout << "The number of operations are - " << matrixMultiplicationR(SZ(nm), nm) << endl;
+    cout << "The number of operations are - " << matrixMultiplicationM(SZ(nm), nm) << endl;
 
     //  End code here-------->>
 
