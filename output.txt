@@ -1,1 +1,1 @@
-Maximum coins is 167
+No of ways 0

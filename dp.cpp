@@ -5,6 +5,7 @@
 #include <limits>
 #include <vector>
 using namespace std;
+#define ll long long
 typedef vector<int> VI;
 typedef vector<vector<int>> VVI;
 typedef vector<vector<vector<int>>> VVVI;
@@ -5944,7 +5945,7 @@ int maxCoinsR(vector<int> &nums)
 }
 // Better ------Memoization----->
 // Time Complexity: O(N3), There are total N2 no. of states. And for each state, we are running a partitioning loop roughly for N times.
-// Space Complexity: O(N2) + Auxiliary stack space of O(N), N2 for the dp array we are using. 
+// Space Complexity: O(N2) + Auxiliary stack space of O(N), N2 for the dp array we are using.
 int maxCoinsMemo(int i, int j, VI &nums, VVI &dp)
 {
     // Base case :
@@ -6002,19 +6003,243 @@ int maxCoinsT(vector<int> &nums)
 // SC :
 
 /*
-51.
-ANS :
+51. Evaluate Boolean Expression to True 
+ANS : You are given an expression 'exp' in the form of a string where operands will be : (TRUE or FALSE), and operators will be : (AND, OR or XOR).
+Now you have to find the number of ways we can parenthesize the expression such that it will evaluate to TRUE.
+As the answer can be very large, return the output modulo 1000000007.
+Note :
+
+‘T’ will represent the operand TRUE.
+‘F’ will represent the operand FALSE.
+‘|’ will represent the operator OR.
+‘&’ will represent the operator AND.
+‘^’ will represent the operator XOR.
 Input :   || Output :
 */
+/*Intuition:
+
+Case 1 (If the partition is made at the ‘AND(&)’ operator):
+Now, the whole expression will yield true when the subproblem1 and subproblem2 both will yield true. So, the total number of ways will be = (x1 * x3).
+
+Case 2 (If the partition is made at the ‘OR(|)’ operator):
+Subproblem1 yields true, and subproblem2 yields true i.e. (x1 * x3) ways.
+Subproblem1 yields false and subproblem2 yields true i.e. (x2 * x3) ways.
+Subproblem1 yields true and subproblem2 yields false i.e. (x1 * x4) ways.
+So, total number of ways = (x1 * x3) + (x2 * x3) + (x1 * x4)
+
+Case 3 If the partition is made at the ‘XOR(^)’ operator
+Subproblem1 yields false and subproblem2 yields true i.e. (x2 * x3) ways.
+Subproblem1 yields true and subproblem2 yields false i.e. (x1 * x4) ways.
+So, total number of ways = (x2 * x3) + (x1 * x4).
+.*/
 // Bruteforce -----Recursion------>
-// TC :
+// TC : Exponential
 // SC :
+int parseBoolExprRecr(int i, int j, int isTrue, string &exp)
+{
+    // Base case 1: If i > j, it's an invalid expression, return 0.
+    if (i > j)
+        return 0;
+
+    // Base case 2: If i and j are the same, evaluate the single character.
+    if (i == j)
+    {
+        if (isTrue == 1)
+            return exp[i] == 'T' ? 1 : 0;
+        else
+            return exp[i] == 'F' ? 1 : 0;
+    }
+    ll ways = 0;
+
+    // Iterate through the expression.
+    for (int ind = i + 1; ind <= j - 1; ind += 2)
+    {
+        ll lT = parseBoolExprRecr(i, ind - 1, 1,
+                                  exp); // Number of ways to make the left expression true.
+        ll lF = parseBoolExprRecr(i, ind - 1, 0,
+                                  exp); // Number of ways to make the left expression false.
+        ll rT = parseBoolExprRecr(ind + 1, j, 1,
+                                  exp); // Number of ways to make the right expression true.
+        ll rF =
+            parseBoolExprRecr(ind + 1, j, 0,
+                              exp); // Number of ways to make the right expression false.
+
+        // Check the operator at the current index and update ways
+        // accordingly.
+        if (exp[ind] == '&')
+        {
+            if (isTrue)
+                ways = (ways + (lT * rT) % mod) % mod;
+            else
+                ways = (ways + (lF * rT) % mod + (lT * rF) % mod +
+                        (lF * rF) % mod) %
+                       mod;
+        }
+        else if (exp[ind] == '|')
+        {
+            if (isTrue)
+                ways = (ways + (lF * rT) % mod + (lT * rF) % mod +
+                        (lT * rT) % mod) %
+                       mod;
+            else
+                ways = (ways + (lF * rF) % mod) % mod;
+        }
+        else
+        { // XOR operator
+            if (isTrue)
+                ways = (ways + (lF * rT) % mod + (lT * rF) % mod) % mod;
+            else
+                ways = (ways + (lF * rF) % mod + (lT * rT) % mod) % mod;
+        }
+    }
+    return ways;
+}
+int parseBoolExpr(string exp)
+{
+    int n = SZ(exp);
+    return parseBoolExprRecr(0, n - 1, 1, exp);
+}
 // Better ------Memoization----->
-// TC :
-// SC :
+// Time Complexity: O(N*N*2 * N) ~ O(N3) There are a total of 2*N2 no. of states. And for each state, we are running a partitioning loop roughly for N times.
+// Space Complexity: O(2*N2) + Auxiliary stack space of O(N), 2*N2 for the dp array we are using.
+int parseBoolExprMemo(int i, int j, int isTrue, string &exp, vector<vector<vector<ll>>> &dp)
+{
+    // Base case 1: If i > j, it's an invalid expression, return 0.
+    if (i > j)
+        return 0;
+
+    // Base case 2: If i and j are the same, evaluate the single character.
+    if (i == j)
+    {
+        if (isTrue == 1)
+            return exp[i] == 'T' ? 1 : 0;
+        else
+            return exp[i] == 'F' ? 1 : 0;
+    }
+    if (dp[i][j][isTrue] != -1)
+        return dp[i][j][isTrue];
+    ll ways = 0;
+
+    // Iterate through the expression.
+    for (int ind = i + 1; ind <= j - 1; ind += 2)
+    {
+        ll lT = parseBoolExprRecr(i, ind - 1, 1,
+                                  exp); // Number of ways to make the left expression true.
+        ll lF = parseBoolExprRecr(i, ind - 1, 0,
+                                  exp); // Number of ways to make the left expression false.
+        ll rT = parseBoolExprRecr(ind + 1, j, 1,
+                                  exp); // Number of ways to make the right expression true.
+        ll rF =
+            parseBoolExprRecr(ind + 1, j, 0,
+                              exp); // Number of ways to make the right expression false.
+
+        // Check the operator at the current index and update ways
+        // accordingly.
+        if (exp[ind] == '&')
+        {
+            if (isTrue)
+                ways = (ways + (lT * rT) % mod) % mod;
+            else
+                ways = (ways + (lF * rT) % mod + (lT * rF) % mod +
+                        (lF * rF) % mod) %
+                       mod;
+        }
+        else if (exp[ind] == '|')
+        {
+            if (isTrue)
+                ways = (ways + (lF * rT) % mod + (lT * rF) % mod +
+                        (lT * rT) % mod) %
+                       mod;
+            else
+                ways = (ways + (lF * rF) % mod) % mod;
+        }
+        else
+        { // XOR operator
+            if (isTrue)
+                ways = (ways + (lF * rT) % mod + (lT * rF) % mod) % mod;
+            else
+                ways = (ways + (lF * rF) % mod + (lT * rT) % mod) % mod;
+        }
+    }
+    return dp[i][j][isTrue] = ways;
+}
+int parseBoolExprM(string exp)
+{
+    int n = SZ(exp);
+    vector<vector<vector<ll>>> dp(n, vector<vector<ll>>(n, vector<ll>(2, -1)));
+    return parseBoolExprMemo(0, n - 1, 1, exp, dp);
+}
 // Optimal -----Tabulation----->
-// TC :
-// SC :
+// Time Complexity: O(N*N*2 * N) ~ O(N3) There are a total of 2*N2 no. of states. And for each state, we are running a partitioning loop roughly for N times.
+// Space Complexity: O(2*N2), 2*N2 for the dp array we are using.
+int evaluateExpT(string &exp)
+{
+    int n = SZ(exp);
+    // return parseBoolExprRecr(0, n - 1, 1, exp);//Recr
+    vector<vector<vector<ll>>> dp(n, vector<vector<ll>>(n, vector<ll>(2, 0)));
+    // return parseBoolExprMemo(0, n - 1, 1, exp,dp);//Memo
+    //   STARTING TABULATION
+    for (int i = n - 1; i >= 0; i--)
+    {
+        for (int j = 0; j <= n - 1; j++)
+        {
+            // Base case 1: i > j is an invalid case, so continue.
+            if (i > j)
+                continue;
+            for (int isTrue = 0; isTrue <= 1; isTrue++)
+            {
+                // Base case 2: i == j, evaluate the single character.
+                if (i == j)
+                {
+                    if (isTrue == 1)
+                        dp[i][j][isTrue] = exp[i] == 'T';
+                    else
+                        dp[i][j][isTrue] = exp[i] == 'F';
+                    continue;
+                }
+                ll ways = 0;
+                // Iterate through the expression.
+                for (int ind = i + 1; ind <= j - 1; ind += 2)
+                {
+                    ll lT = dp[i][ind - 1][1]; // Number of ways to make the left expression true.
+                    ll lF = dp[i][ind - 1][0]; // Number of ways to make the left expression false.
+                    ll rT = dp[ind + 1][j][1]; // Number of ways to make the right expression true.
+                    ll rF = dp[ind + 1][j][0]; // Number of ways to make the right expression false.
+
+                    // Check the operator at the current index and update ways
+                    // accordingly.
+                    if (exp[ind] == '&')
+                    {
+                        if (isTrue)
+                            ways = (ways + (lT * rT) % mod) % mod;
+                        else
+                            ways = (ways + (lF * rT) % mod + (lT * rF) % mod +
+                                    (lF * rF) % mod) %
+                                   mod;
+                    }
+                    else if (exp[ind] == '|')
+                    {
+                        if (isTrue)
+                            ways = (ways + (lF * rT) % mod + (lT * rF) % mod +
+                                    (lT * rT) % mod) %
+                                   mod;
+                        else
+                            ways = (ways + (lF * rF) % mod) % mod;
+                    }
+                    else
+                    { // XOR operator
+                        if (isTrue)
+                            ways = (ways + (lF * rT) % mod + (lT * rF) % mod) % mod;
+                        else
+                            ways = (ways + (lF * rF) % mod + (lT * rT) % mod) % mod;
+                    }
+                }
+                dp[i][j][isTrue] = ways;
+            }
+        }
+    }
+    return dp[0][n - 1][1];
+}
 // Most Optimal -----Space Optimization----->
 // TC :
 // SC :
@@ -6324,7 +6549,7 @@ int main()
     // VI nm = {40, 20, 30, 10, 30};
     // cout << "The number of operations are - " << matrixMultiplicationR(SZ(nm), nm) << endl;
     // cout << "The number of operations are - " << matrixMultiplicationM(SZ(nm), nm) << endl;
-    VI c = {3, 1, 5, 8};
+    // VI c = {3, 1, 5, 8};
     // int stkLen = 7;
     // cout << "Mini cost " << minCostR(stkLen, c) << endl;
     // cout << "Mini cost " << minCostM(stkLen, c) << endl;
@@ -6332,7 +6557,9 @@ int main()
 
     // cout << "Maximum coins is " << maxCoinsR(c) << endl;
     // cout << "Maximum coins is " << maxCoinsM(c) << endl;
-    cout << "Maximum coins is " << maxCoinsT(c) << endl;
+    // cout << "Maximum coins is " << maxCoinsT(c) << endl;
+    string s = "F&T|F&T|F";
+    cout << "No of ways " << parseBoolExpr(s) << endl;
 
     //  End code here-------->>
 
