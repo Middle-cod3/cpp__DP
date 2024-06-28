@@ -1,2 +1,1 @@
-The number of operations are - 26000
-The number of operations are - 26000
+Mini cost 16

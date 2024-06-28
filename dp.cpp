@@ -5778,26 +5778,133 @@ int matrixMultiplicationM(int N, VI &arr)
     return matrixMultiplicationMemo(1, N - 1, arr, dp);
 }
 // Optimal -----Tabulation----->
-// TC :
-// SC :
+// Time Complexity: O(N*N*N)
+// Reason: There are N*N states and we explicitly run a loop inside the function which will run for N times, therefore at max ‘N*N*N’ new problems will be solved.
+// Space Complexity: O(N*N)
+// Reason: We are using a 2D array ( O(N*N)) space.
+int matrixMultiplication(int N, int arr[])
+{
+    VVI dp(N, VI(N, 0));
+    for (int i = N - 1; i >= 1; i--)
+    {
+        for (int j = i + 1; j < N; j++)
+        {
+            int mini = 1e9;
+            for (int k = i; k <= j - 1; k++)
+            {
+                int steps = (arr[i - 1] * arr[k] * arr[j]) + dp[i][k] + dp[k + 1][j];
+                mini = min(mini, steps);
+            }
+            dp[i][j] = mini;
+        }
+    }
+    return dp[1][N - 1];
+}
 // Most Optimal -----Space Optimization----->
 // TC :
 // SC :
 
 /*
-49.
-ANS :
+49. Minimum Cost to Cut a Stick
+ANS : Given a wooden stick of length n units. The stick is labelled from 0 to n. For example, a stick of length 6 is labelled as follows:
+
+
+Given an integer array cuts where cuts[i] denotes a position you should perform a cut at.
+
+You should perform the cuts in order, you can change the order of the cuts as you wish.
+
+The cost of one cut is the length of the stick to be cut, the total cost is the sum of costs of all cuts. When you cut a stick, it will be split into two smaller sticks (i.e. the sum of their lengths is the length of the stick before the cut). Please refer to the first example for a better explanation.
+
+Return the minimum total cost of the cuts.
+
+Prob statement : Which pice you cut add its length for sum as a cost. For first cut or say initial cut you have to add total len of stick.
 Input :   || Output :
 */
 // Bruteforce -----Recursion------>
-// TC :
+// TC : Exponential
 // SC :
+int minCostRecr(int i, int j, VI &cuts)
+{
+    // Base case :
+    if (i > j)
+        return 0;
+    int mini = INT_MAX;
+    for (int ind = i; ind <= j; ind++)
+    {
+        int cost = cuts[j + 1] - cuts[i - 1] + minCostRecr(i, ind - 1, cuts) + minCostRecr(ind + 1, j, cuts); //[left->mid]+[mid->right]
+        mini = min(mini, cost);
+    }
+    return mini;
+}
+int minCostR(int n, vector<int> &cuts)
+{
+    int c = SZ(cuts);
+    // Here n=len(sticks);
+    cuts.PB(n);
+    cuts.insert(cuts.begin(), 0);
+    SORT(cuts);
+    return minCostRecr(1, c, cuts);
+}
 // Better ------Memoization----->
-// TC :
-// SC :
+// Time Complexity: O(N*N*N)
+// Reason: There are 2 variables i and j, therefore, N*N states and we explicitly run a loop inside the function which will run for N times, therefore at max ‘N*N*N’ new problems will be solved.
+// Space Complexity: O(N*N) + O(N)
+// Reason: We are using an auxiliary recursion stack space(O(N))and a 2D array ( O(N*N)).
+int minCostMemo(int i, int j, VI &cuts, VVI &dp)
+{
+    // Base case :
+    if (i > j)
+        return 0;
+    if (dp[i][j] != -1)
+        return dp[i][j];
+    int mini = INT_MAX;
+    for (int ind = i; ind <= j; ind++)
+    {
+        int cost = cuts[j + 1] - cuts[i - 1] + minCostMemo(i, ind - 1, cuts, dp) + minCostMemo(ind + 1, j, cuts, dp); //[left->mid]+[mid->right]
+        mini = min(mini, cost);
+    }
+    return dp[i][j] = mini;
+}
+int minCostM(int n, vector<int> &cuts)
+{
+    int c = SZ(cuts);
+    // Here n=len(sticks);
+    cuts.PB(n);
+    cuts.insert(cuts.begin(), 0);
+    SORT(cuts);
+    VVI dp(c + 1, VI(c + 1, -1));
+    return minCostMemo(1, c, cuts, dp);
+}
 // Optimal -----Tabulation----->
-// TC :
-// SC :
+// Time Complexity: O(N*N*N)
+// Reason: There are 2 variables i and j, therefore, N*N states and we explicitly run a loop inside the function which will run for N times, therefore at max ‘N*N*N’ new problems will be solved.
+// Space Complexity: O(N*N)
+// Reason: We are using a 2D array ( O(N*N)).
+int minCostT(int n, vector<int> &cuts)
+{
+    // Here n=len(sticks);
+    int c = SZ(cuts);
+    cuts.PB(n);
+    cuts.insert(cuts.begin(), 0);
+    SORT(cuts);
+    VVI dp(c + 2, VI(c + 2, 0));
+    for (int i = c; i >= 1; i--) // Its bottom up so reverse the call (n-1 to 1)
+    {
+        for (int j = 1; j <= c; j++)
+        {
+            if (i > j)
+                continue;
+            int mini = INT_MAX;
+            for (int ind = i; ind <= j; ind++)
+            {
+                int cost = cuts[j + 1] - cuts[i - 1] + dp[i][ind - 1] + dp[ind + 1][j]; //[left->mid]+[mid->right]
+                mini = min(mini, cost);
+            }
+            dp[i][j] = mini;
+        }
+    }
+    return dp[1][c]; // Memo's call is here
+}
 // Most Optimal -----Space Optimization----->
 // TC :
 // SC :
@@ -6140,10 +6247,14 @@ int main()
     // cout << "Bitonic Seq " << LongestBitonicSequence(8, nm);
     // VI nm = {1, 3, 5, 4, 7};
     // cout << "LIS " << findNumberOfLIS(nm);
-    VI nm = {40, 20, 30, 10, 30};
-    cout << "The number of operations are - " << matrixMultiplicationR(SZ(nm), nm) << endl;
-    cout << "The number of operations are - " << matrixMultiplicationM(SZ(nm), nm) << endl;
-
+    // VI nm = {40, 20, 30, 10, 30};
+    // cout << "The number of operations are - " << matrixMultiplicationR(SZ(nm), nm) << endl;
+    // cout << "The number of operations are - " << matrixMultiplicationM(SZ(nm), nm) << endl;
+    VI c = {3, 5, 1, 4};
+    int stkLen = 7;
+    // cout << "Mini cost " << minCostR(stkLen, c) << endl;
+    // cout << "Mini cost " << minCostM(stkLen, c) << endl;
+    cout << "Mini cost " << minCostT(stkLen, c) << endl;
     //  End code here-------->>
 
     return 0;
