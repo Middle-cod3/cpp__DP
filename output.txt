@@ -1,1 +1,1 @@
-Mini cost 16
+Maximum coins is 167

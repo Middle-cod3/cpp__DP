@@ -5910,19 +5910,93 @@ int minCostT(int n, vector<int> &cuts)
 // SC :
 
 /*
-50.
-ANS :
+50. Burst Balloons
+ANS : You are given n balloons, indexed from 0 to n - 1. Each balloon is painted with a number on it represented by an array nums. You are asked to burst all the balloons.
+
+If you burst the ith balloon, you will get nums[i - 1] * nums[i] * nums[i + 1] coins. If i - 1 or i + 1 goes out of bounds of the array, then treat it as if there is a balloon with a 1 painted on it.
+
+Return the maximum coins you can collect by bursting the balloons wisely.
 Input :   || Output :
 */
 // Bruteforce -----Recursion------>
-// TC :
+// TC :Exponential
 // SC :
+int maxCoinsRecr(int i, int j, VI &nums)
+{
+    // Base case :
+    if (i > j)
+        return 0;
+    int maxi = INT_MIN;
+    for (int ind = i; ind <= j; ind++)
+    {
+        int sum = nums[i - 1] * nums[ind] * nums[j + 1] + maxCoinsRecr(i, ind - 1, nums) + maxCoinsRecr(ind + 1, j, nums);
+        if (sum > maxi)
+            maxi = sum;
+    }
+    return maxi;
+}
+int maxCoinsR(vector<int> &nums)
+{
+    int n = SZ(nums);
+    nums.PB(1);                   // Insert at end
+    nums.insert(nums.begin(), 1); // At the start
+    return maxCoinsRecr(1, n, nums);
+}
 // Better ------Memoization----->
-// TC :
-// SC :
+// Time Complexity: O(N3), There are total N2 no. of states. And for each state, we are running a partitioning loop roughly for N times.
+// Space Complexity: O(N2) + Auxiliary stack space of O(N), N2 for the dp array we are using. 
+int maxCoinsMemo(int i, int j, VI &nums, VVI &dp)
+{
+    // Base case :
+    if (i > j)
+        return 0;
+    if (dp[i][j] != -1)
+        return dp[i][j];
+    int maxi = INT_MIN;
+    for (int ind = i; ind <= j; ind++)
+    {
+        int sum = nums[i - 1] * nums[ind] * nums[j + 1] + maxCoinsMemo(i, ind - 1, nums, dp) + maxCoinsMemo(ind + 1, j, nums, dp);
+        if (sum > maxi)
+            maxi = sum;
+    }
+    return dp[i][j] = maxi;
+}
+int maxCoinsM(vector<int> &nums)
+{
+    int n = SZ(nums);
+    nums.PB(1);                   // Insert at end
+    nums.insert(nums.begin(), 1); // At the start
+    VVI dp(n + 1, VI(n + 1, -1));
+    return maxCoinsMemo(1, n, nums, dp);
+}
 // Optimal -----Tabulation----->
-// TC :
-// SC :
+// Time Complexity: O(N3), There are total N2 no. of states. And for each state, we are running a partitioning loop roughly for N times.
+// Space Complexity: O(N2), N2 for the dp array we are using.
+int maxCoinsT(vector<int> &nums)
+{
+    int n = SZ(nums);
+    nums.PB(1);                   // Insert at end
+    nums.insert(nums.begin(), 1); // At the start
+    VVI dp(n + 2, VI(n + 2, 0));
+    for (int i = n; i >= 1; i--)
+    {
+        for (int j = 1; j <= n; j++)
+        {
+            if (i > j)
+                continue;
+            int maxi = INT_MIN;
+            for (int ind = i; ind <= j; ind++)
+            {
+                int sum = nums[i - 1] * nums[ind] * nums[j + 1] + dp[i][ind - 1] + dp[ind + 1][j];
+                if (sum > maxi)
+                    maxi = sum;
+            }
+            dp[i][j] = maxi;
+        }
+    }
+
+    return dp[1][n];
+}
 // Most Optimal -----Space Optimization----->
 // TC :
 // SC :
@@ -6250,11 +6324,16 @@ int main()
     // VI nm = {40, 20, 30, 10, 30};
     // cout << "The number of operations are - " << matrixMultiplicationR(SZ(nm), nm) << endl;
     // cout << "The number of operations are - " << matrixMultiplicationM(SZ(nm), nm) << endl;
-    VI c = {3, 5, 1, 4};
-    int stkLen = 7;
+    VI c = {3, 1, 5, 8};
+    // int stkLen = 7;
     // cout << "Mini cost " << minCostR(stkLen, c) << endl;
     // cout << "Mini cost " << minCostM(stkLen, c) << endl;
-    cout << "Mini cost " << minCostT(stkLen, c) << endl;
+    // cout << "Mini cost " << minCostT(stkLen, c) << endl;
+
+    // cout << "Maximum coins is " << maxCoinsR(c) << endl;
+    // cout << "Maximum coins is " << maxCoinsM(c) << endl;
+    cout << "Maximum coins is " << maxCoinsT(c) << endl;
+
     //  End code here-------->>
 
     return 0;
