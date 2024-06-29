@@ -6003,7 +6003,7 @@ int maxCoinsT(vector<int> &nums)
 // SC :
 
 /*
-51. Evaluate Boolean Expression to True 
+51. Evaluate Boolean Expression to True
 ANS : You are given an expression 'exp' in the form of a string where operands will be : (TRUE or FALSE), and operators will be : (AND, OR or XOR).
 Now you have to find the number of ways we can parenthesize the expression such that it will evaluate to TRUE.
 As the answer can be very large, return the output modulo 1000000007.
@@ -6245,19 +6245,105 @@ int evaluateExpT(string &exp)
 // SC :
 
 /*
-52.
-ANS :
+52. Palindrome Partitioning II
+ANS : Given a string s, partition s such that every substring of the partition is a palindrome.
+Return the minimum cuts needed for a palindrome partitioning of s.
 Input :   || Output :
 */
 // Bruteforce -----Recursion------>
-// TC :
+// TC : Exponential
 // SC :
+bool isPalindrome(int left, int right, string &str)
+{
+    while (left < right)
+    {
+        if (str[left] != str[right])
+        {
+            return false;
+        }
+        ++left;
+        --right;
+    }
+    return true;
+}
+int minCutRecr(int i, int n, string &s)
+{
+    // Base case :
+    if (i == n)
+        return 0;
+    int minCost = INT_MAX;
+    for (int j = i; j < n; j++)
+    {
+        if (isPalindrome(i, j, s))
+        {
+            int cost = 1 + minCutRecr(j + 1, n, s);
+            minCost = min(cost, minCost);
+        }
+    }
+    return minCost;
+}
+int minCutR(string s)
+{
+    int n = SZ(s);
+    // Calling the recursive function and subtracting 1 as it counts partitions, not cuts.
+    return minCutRecr(0, n, s) - 1;
+}
 // Better ------Memoization----->
-// TC :
-// SC :
+// Time Complexity: O(N2)
+// Reason: There are a total of N states and inside each state, a loop of size N(apparently) is running.
+// Space Complexity: O(N) + Auxiliary stack space O(N)
+// Reason: The first O(N) is for the dp array of size N.
+int minCutMemo(int i, int n, string &s, VI &dp)
+{
+    // Base case :
+    if (i == n)
+        return 0;
+    if (dp[i] != -1)
+        return dp[i];
+    int minCost = INT_MAX;
+    for (int j = i; j < n; j++)
+    {
+        if (isPalindrome(i, j, s))
+        {
+            int cost = 1 + minCutRecr(j + 1, n, s);
+            minCost = min(cost, minCost);
+        }
+    }
+    return dp[i] = minCost;
+}
+int minCutM(string s)
+{
+    int n = SZ(s);
+    // Calling the recursive function and subtracting 1 as it counts partitions, not cuts.
+    VI dp(n, -1);
+    return minCutMemo(0, n, s, dp) - 1;
+}
 // Optimal -----Tabulation----->
-// TC :
-// SC :
+// Time Complexity: O(N2)
+// Reason: There are a total of N states and inside each state a loop of size N(apparently) is running.
+// Space Complexity: O(N)
+// Reason: O(N) is for the dp array we have used.
+int minCutT(string s)
+{
+    int n = SZ(s);
+    // Calling the recursive function and subtracting 1 as it counts partitions, not cuts.
+    VI dp(n + 1, 0);
+    dp[n] = 0; // The cost for this single character palindrome is 1 + dp[n]. Since dp[n] is 0 (no cuts needed beyond the end), the cost is 1.
+    for (int i = n - 1; i >= 0; i--)
+    {
+        int minCost = INT_MAX;
+        for (int j = i; j < n; j++)
+        {
+            if (isPalindrome(i, j, s))
+            {
+                int cost = 1 + dp[j + 1];
+                minCost = min(cost, minCost);
+            }
+            dp[i] = minCost;
+        }
+    }
+    return dp[0] - 1;
+}
 // Most Optimal -----Space Optimization----->
 // TC :
 // SC :
@@ -6558,8 +6644,16 @@ int main()
     // cout << "Maximum coins is " << maxCoinsR(c) << endl;
     // cout << "Maximum coins is " << maxCoinsM(c) << endl;
     // cout << "Maximum coins is " << maxCoinsT(c) << endl;
-    string s = "F&T|F&T|F";
-    cout << "No of ways " << parseBoolExpr(s) << endl;
+    // string s = "F&T|F&T|F";
+    // cout << "No of ways " << parseBoolExpr(s) << endl;
+    string ss = "aabcbefe";
+    // cout<<"Min cut "<<minCutR(ss)<<endl;
+    // cout<<"Min cut "<<minCutM(ss)<<endl;
+    cout << "Min cut " << minCutT(ss) << endl;
+    int n = 4;
+    VI a(n, 0);
+    a[n] = 4;
+    printVector(a);
 
     //  End code here-------->>
 

@@ -1,1 +1,2 @@
-No of ways 0
+Min cut 2
+Min cut 2
