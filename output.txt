@@ -1,2 +1,1 @@
-Min cut 2
-Min cut 2
+The number of squares: 15

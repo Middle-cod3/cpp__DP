@@ -6349,13 +6349,167 @@ int minCutT(string s)
 // SC :
 
 /*
-53.
-ANS :
+53. Partition Array for Maximum Sum
+ANS : Given an integer array arr, partition the array into (contiguous) subarrays of length at most k. After partitioning, each subarray has their values changed to become the maximum value of that subarray.
+
+Return the largest sum of the given array after partitioning. Test cases are generated so that the answer fits in a 32-bit integer.
 Input :   || Output :
 */
+/*
+Intuition:
+The goal is to partition the array into subarrays of at most length k and maximize the sum of the largest element of each subarray multiplied by its length. The approach involves:
+Recursive Exploration: Starting from the beginning of the array, use a recursive function to explore all possible partitions of length up to k.
+Max Element Calculation: For each potential partition, calculate the maximum element and its contribution to the sum (i.e., max_element * length).
+Optimal Subproblem Combination: Add the contribution of the current partition to the maximum sum obtainable from the remaining elements (handled recursively).
+
+Why we wrote min(n, i + k) this inside loop??
+-->>In the loop, min(n, i + k) ensures that the subarray does not exceed the bounds
+i is the starting index of the current partition.
+k is the maximum length of the partition.
+n is the total length of the array.
+By using min(n, i + k), the loop runs from index i to either i + k or the end of the array, whichever comes first. This prevents the loop from going out of bounds when i + k exceeds n.
+*/
 // Bruteforce -----Recursion------>
+// TC :Exponential
+// SC :
+int maxSumAfterPartitioningRecr(int i, int n, VI &arr, int k)
+{
+    // Base case: If the current index is equal to the size of the array, return 0.
+    if (i == n)
+        return 0;
+    int len = 0, maxi = INT_MIN, maxAns = INT_MIN;
+    for (int j = i; j < min(n, i + k); j++)
+    { // if ind+k exceed array
+        len++;
+        maxi = max(maxi, arr[j]);
+        int sum = (len * maxi) + maxSumAfterPartitioningRecr(j + 1, n, arr, k); // len x max(elem)
+        maxAns = max(maxAns, sum);
+    }
+    return maxAns;
+}
+int maxSumAfterPartitioningR(vector<int> &arr, int k)
+{
+    int n = SZ(arr);
+    return maxSumAfterPartitioningRecr(0, n, arr, k);
+}
+// Better ------Memoization----->
+// Time Complexity: O(N*k)
+// Reason: There are a total of N states and for each state, we are running a loop from 0 to k.
+// Space Complexity: O(N) + Auxiliary stack space O(N)
+// Reason: First O(N) for the dp array we are using.
+int maxSumAfterPartitioningMemo(int i, int n, VI &arr, int k, VI &dp)
+{
+    // Base case: If the current index is equal to the size of the array,
+    // return 0.
+    if (i == n)
+        return 0;
+    if (dp[i] != -1)
+        return dp[i];
+    int len = 0, maxi = INT_MIN, maxAns = INT_MIN;
+    for (int j = i; j < min(n, i + k); j++)
+    { // if ind+k exceed array
+        len++;
+        maxi = max(maxi, arr[j]);
+        int sum = (len * maxi) +
+                  maxSumAfterPartitioningMemo(j + 1, n, arr, k,
+                                              dp); // len x max(elem)
+        maxAns = max(maxAns, sum);
+    }
+    return dp[i] = maxAns;
+};
+int maxSumAfterPartitioningM(vector<int> &arr, int k)
+{
+    int n = SZ(arr);
+    VI dp(n, -1);
+    return maxSumAfterPartitioningMemo(0, n, arr, k, dp);
+}
+// Optimal -----Tabulation----->
+// Time Complexity: O(N*k)
+// Reason: There are a total of N states and for each state, we are running a loop from 0 to k.
+// Space Complexity: O(N)
+// Reason: O(N) for the dp array we are using.
+int maxSumAfterPartitioningT(vector<int> &arr, int k)
+{
+    int n = SZ(arr);
+    VI dp(n + 1, 0);
+    for (int i = n - 1; i >= 0; i--)
+    {
+        int len = 0, maxi = INT_MIN, maxAns = INT_MIN;
+        for (int j = i; j < min(n, i + k); j++)
+        { // if ind+k exceed array
+            len++;
+            maxi = max(maxi, arr[j]);
+            int sum = (len * maxi) +
+                      dp[j + 1]; // len x max(elem)
+            maxAns = max(maxAns, sum);
+        }
+        dp[i] = maxAns;
+    }
+    return dp[0];
+}
+// Most Optimal -----Space Optimization----->
 // TC :
 // SC :
+
+/*
+54. Maximum Rectangle Area with all 1's
+ANS : Given a rows x cols binary matrix filled with 0's and 1's, find the largest rectangle containing only 1's and return its area.
+Input :   || Output :
+*/
+/*
+Here we used Area of histogram from Stack & queue
+Algorithm : Declare a height array of size m(where m = no. of columns of the matrix).
+Now, we will run a loop to visit all the rows of the matrix.
+Now inside the loop, for each row, iterate over every column, and if a cell contains 1 we will increase the value of the column index by 1 in the height array i.e. height[col]++. But if the cell contains 0, we will set 0 for that column index in the height array.
+Once every cell gets visited, we will pass the height array i.e. the histogram array to the largestRectangleArea() function and store the maximum area for the row.
+Now, among all the areas calculated for all rows, we will keep the maximum one as our answer.
+*/
+// Bruteforce -----Recursion------>
+// Time Complexity: O(N * (M+M)), where N = total no. of rows and M = total no. of columns.
+// Reason: O(N) for running a loop to check all rows. Now, inside that loop, O(M) is for visiting all the columns, and another O(M) is for the function we are using. The function takes linear time complexity. Here, the size of the height array is M, so it will take O(M).
+// Space Complexity: O(M), where M = total no. of columns.
+// Reason: We are using a height array and a stack of size M.
+int largestRectangleArea(vector<int> &histo)
+{
+    stack<int> st;
+    int maxA = 0;
+    int n = histo.size();
+    for (int i = 0; i <= n; i++)
+    {
+        while (!st.empty() && (i == n || histo[st.top()] >= histo[i]))
+        {
+            int height = histo[st.top()];
+            st.pop();
+            int width;
+            if (st.empty())
+                width = i;
+            else
+                width = i - st.top() - 1;
+            maxA = max(maxA, width * height);
+        }
+        st.push(i);
+    }
+    return maxA;
+}
+int maximalAreaOfSubMatrixOfAll1(vector<vector<int>> &mat, int n, int m)
+{
+    // Write your code here.
+    int maxArea = 0;
+    vector<int> height(m, 0);
+    for (int i = 0; i < n; i++)
+    {
+        for (int j = 0; j < m; j++)
+        {
+            if (mat[i][j] == 1)
+                height[j]++;
+            else
+                height[j] = 0;
+        }
+        int area = largestRectangleArea(height);
+        maxArea = max(maxArea, area);
+    }
+    return maxArea;
+}
 // Better ------Memoization----->
 // TC :
 // SC :
@@ -6367,31 +6521,48 @@ Input :   || Output :
 // SC :
 
 /*
-54.
-ANS :
+55. Count Square Submatrices with All Ones
+ANS : Given a m * n matrix of ones and zeros, return how many square submatrices have all ones.
 Input :   || Output :
 */
 // Bruteforce -----Recursion------>
-// TC :
-// SC :
-// Better ------Memoization----->
-// TC :
-// SC :
-// Optimal -----Tabulation----->
-// TC :
-// SC :
-// Most Optimal -----Space Optimization----->
-// TC :
-// SC :
+// Time Complexity: O(N*M), where N = total no. of rows and M = total no. of columns
+// Reason: We are basically traversing a 2D matrix with N rows and M columns.
+// Space Complexity: O(N*M), where N = total no. of rows and M = total no. of columns
+// Reason: We are using a 2D dp array with N rows and M columns.
+int countSquares(int n, int m, vector<vector<int>> &arr)
+{
+    vector<vector<int>> dp(n, vector<int>(m, 0));
 
-/*
-55.
-ANS :
-Input :   || Output :
-*/
-// Bruteforce -----Recursion------>
-// TC :
-// SC :
+    for (int j = 0; j < m; j++)
+        dp[0][j] = arr[0][j];
+    for (int i = 0; i < n; i++)
+        dp[i][0] = arr[i][0];
+
+    for (int i = 1; i < n; i++)
+    {
+        for (int j = 1; j < m; j++)
+        {
+            if (arr[i][j] == 0)
+                dp[i][j] = 0;
+            else
+            {
+                dp[i][j] = 1 + min(dp[i - 1][j],
+                                   min(dp[i - 1][j - 1], dp[i][j - 1]));
+            }
+        }
+    }
+
+    int sum = 0;
+    for (int i = 0; i < n; i++)
+    {
+        for (int j = 0; j < m; j++)
+        {
+            sum += dp[i][j];
+        }
+    }
+    return sum;
+}
 // Better ------Memoization----->
 // TC :
 // SC :
@@ -6646,14 +6817,29 @@ int main()
     // cout << "Maximum coins is " << maxCoinsT(c) << endl;
     // string s = "F&T|F&T|F";
     // cout << "No of ways " << parseBoolExpr(s) << endl;
-    string ss = "aabcbefe";
+    // string ss = "aabcbefe";
     // cout<<"Min cut "<<minCutR(ss)<<endl;
     // cout<<"Min cut "<<minCutM(ss)<<endl;
-    cout << "Min cut " << minCutT(ss) << endl;
-    int n = 4;
-    VI a(n, 0);
-    a[n] = 4;
-    printVector(a);
+    // cout << "Min cut " << minCutT(ss) << endl;
+    // int n = 4;
+    // VI a(n, 0);
+    // a[n] = 4;
+    // printVector(a);
+    // vector<int> num = {1, 15, 7, 9, 2, 5, 10};
+    // int k = 3;
+    // cout << "The maximum sum is: " << maxSumAfterPartitioningR(num, k) << endl;
+    // cout << "The maximum sum is: " << maxSumAfterPartitioningM(num, k) << endl;
+    // cout << "The maximum sum is: " << maxSumAfterPartitioningT(num, k) << endl;
+    // vector<vector<int>> mat = {
+    //     {1, 0, 1, 0, 0}, {1, 0, 1, 1, 1}, {1, 1, 1, 1, 1}, {1, 0, 0, 1, 0}};
+    // int n = 4, m = 5;
+    // int maxArea = maximalAreaOfSubMatrixOfAll1(mat, n, m);
+    // cout << "The maximum are is: " << maxArea << "\n";
+    vector<vector<int>> arr = {
+        {0, 1, 1, 1}, {1, 1, 1, 1}, {0, 1, 1, 1}};
+    int n = 3, m = 4;
+    int squares = countSquares(n, m, arr);
+    cout << "The number of squares: " << squares << "\n";
 
     //  End code here-------->>
 
