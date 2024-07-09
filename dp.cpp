@@ -339,6 +339,24 @@ int countDistinctWaysMemo(int n)
 
     return ways;
 }
+int climbStairsm2(int n, unordered_map<int, int> &memo)
+{
+    if (n == 0 || n == 1)
+    {
+        return 1;
+    }
+    if (memo.find(n) == memo.end())
+    {
+        memo[n] = climbStairsm2(n - 1, memo) + climbStairsm2(n - 2, memo);
+    }
+    return memo[n];
+}
+
+int climbStairs(int n)
+{
+    unordered_map<int, int> memo;
+    return climbStairsm2(n, memo);
+}
 // Optimal -----Tabulation----->
 // TC : O(N) We are running a simple iterative loop
 // SC : We are using an external array of size ‘n+1’. we're not using recirsion stack space
@@ -369,6 +387,22 @@ int countDistinctWaysTab(int n)
     }
 
     return dp[1];
+}
+int climbStairsTablulation(int n)
+{
+    if (n == 0 || n == 1)
+    {
+        return 1;
+    }
+
+    vector<int> dp(n + 1);
+    dp[0] = dp[1] = 1;
+
+    for (int i = 2; i <= n; i++)
+    {
+        dp[i] = dp[i - 1] + dp[i - 2];
+    }
+    return dp[n];
 }
 
 // Most Optimal -----Space Optimization----->
@@ -439,6 +473,21 @@ int countDistinctWaysSOpti(int n)
     return fib(n + 1, mod);
 }
 
+int climbStairsSpaceOPti(int n)
+{
+    if (n == 0 || n == 1)
+    {
+        return 1;
+    }
+    int prev = 1, curr = 1;
+    for (int i = 2; i <= n; i++)
+    {
+        int temp = curr;
+        curr = prev + curr;
+        prev = temp;
+    }
+    return curr;
+}
 /*
 3.Frog Jump
 ANS : There is a frog on the '1st' step of an 'N' stairs long staircase. The frog wants to reach the 'Nth' stair. 'HEIGHT[i]' is the height of the '(i+1)th' stair.If Frog jumps from 'ith' to 'jth' stair, the energy lost in the jump is given by absolute value of ( HEIGHT[i-1] - HEIGHT[j-1] ). If the Frog is on 'ith' staircase, he can jump either to '(i+1)th' stair or to '(i+2)th' stair. Your task is to find the minimum total energy used by the frog to reach from '1st' stair to 'Nth' stair.
